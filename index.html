@@ -1,361 +1,928 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Afit Digital Market | Future Commerce</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            black: '#050505',
-                            dark: '#0a0a0a',
-                            gray: '#1a1a1a',
-                            accent: '#CCFF00', // Acid Green 
-                            white: '#F0F0F0'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        display: ['Space Grotesk', 'sans-serif'],
-                    },
-                    backgroundImage: {
-                        'noise': "url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22 opacity=%220.07%22/%3E%3C/svg%3E')",
-                    }
-                }
-            }
+    <script> 
+    (function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const isAdmin = localStorage.getItem('adm_dev_mode');
+
+        if (urlParams.get('access') === 'vendor') {
+            window.location.href = 'dashboard.html';
+            return; 
+        } 
+
+        if (urlParams.get('mode') === 'admin') {
+            localStorage.setItem('adm_dev_mode', 'true');
+            alert("✅ Developer Mode Unlocked!");
+            return;
         }
+
+        if (!isAdmin) {
+            window.location.href = 'coming-soon.html'; 
+        }
+    })(); 
     </script>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <style>
-        body {
-            background-color: #050505;
-            color: #F0F0F0;
-            overflow-x: hidden;
-            cursor: none; /* Custom cursor logic below */
-        }
+  <title>AFIT Digital Market (ADM) | Campus Buy & Sell Platform</title>
+  <meta name="description" content="AFIT Digital Market (ADM) is a student-focused digital marketplace for AFIT. Discover campus vendors, browse products and services, and connect directly with sellers fast and safely.">
+  <meta name="keywords" content="AFIT Digital Market, AFIT marketplace, campus marketplace Nigeria, student vendors AFIT, buy and sell on campus, AFIT services, AFIT online market">
+  <meta name="author" content="Brightsitedev Team">
+  <link rel="canonical" href="https://afitdgm.store/">
 
-        /* Custom Cursor */
-        .cursor-dot, .cursor-outline {
-            position: fixed;
-            top: 0;
-            left: 0;
-            transform: translate(-50%, -50%);
-            border-radius: 50%;
-            z-index: 9999;
-            pointer-events: none;
-        }
-        .cursor-dot {
-            width: 8px;
-            height: 8px;
-            background-color: #CCFF00;
-        }
-        .cursor-outline {
-            width: 40px;
-            height: 40px;
-            border: 1px solid rgba(204, 255, 0, 0.5);
-            transition: width 0.2s, height 0.2s;
-        }
-        
-        /* Smooth Scroll Setup */
-        html.lenis { height: auto; }
-        .lenis.lenis-smooth { scroll-behavior: auto; }
-        .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
-        .lenis.lenis-stopped { overflow: hidden; }
-        
-        /* Utilities */
-        .glass-card {
-            background: rgba(26, 26, 26, 0.4);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .text-stroke {
-            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.2);
-            color: transparent;
-        }
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="AFIT Digital Market (ADM) | Discover. Connect. Trade.">
+  <meta property="og:description" content="A campus digital marketplace built for AFIT students and vendors. Discover businesses, compare prices, and connect instantly.">
+  <meta property="og:url" content="https://afitdgm.store/">
+  <meta property="og:image" content="https://afitdgm.store/img/app-logo.png">
+  <meta property="og:site_name" content="AFIT Digital Market">
 
-        .clip-text-image {
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            background-image: linear-gradient(45deg, #CCFF00, #00FF94);
-        }
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AFIT Digital Market (ADM)">
+  <meta name="twitter:description" content="Your campus digital marketplace — discover and connect with AFIT vendors easily.">
+  <meta name="twitter:image" content="https://afitdgm.store/img/app-logo.png">
 
-        /* Marquee Animation */
-        @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-        .animate-marquee {
-            display: inline-block;
-            white-space: nowrap;
-            animation: marquee 20s linear infinite;
-        }
-    </style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2d8eff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="AFIT DGM">
+
+  <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="img/app-logo.png">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="asset/style.css">
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-70VSGR5WBW');
+  </script>
+
+  <style>
+      /* Text Wrapping Fix */
+      .ad-title {
+          white-space: normal !important;
+          line-height: 1.3;
+          height: auto !important;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          margin-bottom: 5px;
+      }
+      .ad-desc-preview {
+          font-size: 11px; color: #888;
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+          margin-bottom: 8px;
+      }
+
+      /* New Modal Animation */
+      @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+      .modal-sheet {
+          background: white; width: 100%; max-width: 500px;
+          border-radius: 20px 20px 0 0; padding: 25px;
+          animation: slideUp 0.3s ease-out;
+          position: relative;
+          max-height: 85vh; 
+          overflow-y: auto;
+      }
+
+      /* Similar Items Grid */
+      .similar-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+          margin-top: 10px;
+      }
+      .sim-card { cursor: pointer; }
+      .sim-img { width: 100%; height: 80px; object-fit: cover; border-radius: 8px; background: #eee; }
+      .sim-price { font-size: 10px; font-weight: bold; margin-top: 3px; color: #333; }
+
+      /* Description Box Style */
+      .desc-box {
+          max-height: 200px; 
+          overflow-y: auto; 
+          margin-bottom: 20px; 
+          background: #f9f9f9; 
+          padding: 10px; 
+          border-radius: 10px;
+      }
+
+      /* See All Button Style */
+      .see-all-container {
+        text-align: center;
+        margin-top: 15px;
+        margin-bottom: 10px;
+      }
+
+      .see-all-btn-large {
+        display: inline-block;
+        background: white;
+        color: #2d8eff;
+        border: 1px solid #2d8eff;
+        padding: 12px 30px;
+        border-radius: 30px;
+        font-weight: bold;
+        text-decoration: none;
+        font-size: 13px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        transition: all 0.2s;
+      }
+
+      .see-all-btn-large:active {
+        background: #2d8eff;
+        color: white;
+      }
+
+      /* Dark Mode Fixes */
+      body.dark-mode .modal-sheet { background: #1e1e1e !important; color: white; }
+      body.dark-mode .ad-desc-preview { color: #aaa; }
+      body.dark-mode .sim-price { color: #ccc; }
+      
+      /* Dark Mode for Description Box */
+      body.dark-mode .desc-box { background: #333 !important; color: #ddd; }
+      body.dark-mode #m-desc { color: #ddd !important; }
+
+      body.dark-mode .see-all-btn-large {
+        background: #2a2a2a;
+        border-color: #2d8eff;
+        color: #2d8eff;
+      }
+  </style>
+  
 </head>
-<body class="antialiased">
 
-    <div class="cursor-dot hidden md:block"></div>
-    <div class="cursor-outline hidden md:block"></div>
+<body>
 
-    <div class="fixed inset-0 pointer-events-none z-50 mix-blend-overlay bg-noise opacity-50"></div>
-
-    <nav class="fixed top-0 w-full z-40 px-6 py-6 flex justify-between items-center mix-blend-difference">
-        <div class="text-xl font-display font-bold tracking-tighter uppercase">
-            Afit<span class="text-brand-accent">.</span>Digital
+  <div class="app-container">
+    <div class="header">
+        <div class="header-top">
+          <a href="/"> <img src="img/logo-white.png" alt="AFIT Market" class="site-logo"> </a>
+          <div style="display: flex; gap: 10px; align-items: center;">
+              <div class="notification-icon-box" id="theme-toggle"><i class="fas fa-moon"></i></div>
+              <div class="notification-icon-box" id="notif-btn"><i class="far fa-bell"></i></div>
+              <a href="saved.html" class="notification-icon-box" style="text-decoration:none; color:inherit;"><i class="far fa-heart"></i></a>
+              <a href="account.html" class="notification-icon-box" id="header-profile-btn" style="overflow: hidden; padding: 0;"><i class="far fa-user" style="padding: 8px;"></i></a>
+          </div>
         </div>
-        <div class="hidden md:flex gap-8 text-sm font-medium uppercase tracking-widest opacity-80">
-            <a href="#" class="hover:text-brand-accent transition-colors">Market</a>
-            <a href="#" class="hover:text-brand-accent transition-colors">Agency</a>
-            <a href="#" class="hover:text-brand-accent transition-colors">Ventures</a>
+        <div class="search-box">
+          <select id="search-type">
+            <option value="product">Product</option>
+            <option value="vendor">Vendor</option>
+          </select>
+          <input type="text" id="main-search" placeholder="Search..." />
+          <i class="fas fa-search" style="padding:10px; color:#777;"></i>
         </div>
-        <button class="px-5 py-2 border border-white/20 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-brand-accent hover:text-black hover:border-brand-accent transition-all duration-300">
-            Connect
-        </button>
-    </nav>
+    </div>
 
-    <header class="relative min-h-screen flex flex-col justify-center px-6 pt-20 overflow-hidden">
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-accent/20 rounded-full blur-[120px] pointer-events-none opacity-40 animate-pulse"></div>
+    <div id="global-announcement">
+        <marquee scrollamount="5" id="announce-text">Welcome to AFIT Market!</marquee>
+    </div>
 
-        <div class="relative z-10 max-w-7xl mx-auto w-full">
-            <div class="hero-text overflow-hidden">
-                <h1 class="font-display text-[12vw] leading-[0.85] font-bold tracking-tighter uppercase">
-                    <div class="reveal-text">Define</div>
-                </h1>
-            </div>
-            <div class="hero-text overflow-hidden">
-                <h1 class="font-display text-[12vw] leading-[0.85] font-bold tracking-tighter uppercase flex items-center gap-4">
-                    <div class="reveal-text text-brand-accent">Digital</div>
-                    <div class="h-[2vw] w-[12vw] bg-white/10 rounded-full backdrop-blur-md hidden md:block reveal-bar origin-left"></div>
-                </h1>
-            </div>
-            <div class="hero-text overflow-hidden">
-                <h1 class="font-display text-[12vw] leading-[0.85] font-bold tracking-tighter uppercase text-stroke hover:text-white transition-colors duration-500">
-                    <div class="reveal-text">Value</div>
-                </h1>
-            </div>
+    <section class="stories-container" id="stories-section" style="display:none;">
+        <div style="font-size:12px; font-weight:bold; margin-bottom:8px; color:#555; padding-left:5px;">⚡ Flash Sales</div>
+        <div class="stories-scroll" id="stories-list"></div>
+    </section> 
 
-            <div class="mt-12 flex flex-col md:flex-row justify-between items-end border-t border-white/10 pt-6 opacity-0 hero-sub">
-                <p class="max-w-md text-gray-400 text-sm md:text-base font-light leading-relaxed">
-                    Afit is the premier digital marketplace for next-gen assets. We bridge the gap between abstract creativity and tangible commerce.
-                </p>
-                <div class="mt-6 md:mt-0 flex gap-4">
-                    <div class="text-xs font-mono text-brand-accent border border-brand-accent/30 px-3 py-1 rounded">2026.V.2.0</div>
-                    <div class="text-xs font-mono text-gray-500 border border-white/10 px-3 py-1 rounded">LAGOS • LONDON • TOKYO</div>
-                </div>
-            </div>
+    <section class="info-cards">
+      <a href="requests.html"><div class="info-card"><i class="fas fa-bullhorn"></i> Requests</div></a>
+      <a href="ambassadors/"><div class="info-card"><i class="fas fa-briefcase"></i> Ambassadors</div> </a>
+      <a href="safety/"><div class="info-card"><i class="fas fa-shield-alt"></i> Safety</div></a>
+      <a href="blogs/"><div class="info-card"><i class="fas fa-newspaper"></i> Blog</div></a>
+      <a href="vendor-register.html"><div class="info-card"><i class="fas fa-store-alt"></i> Vendor Reg</div></a>
+       <a href="vendor-info/"><div class="info-card"><i class="fas fa-id-card"></i> Vendor INFO</div></a>
+    </section>
+
+    <section class="categories">
+      <a href="category.html?cat=Phones" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-mobile-alt"></i></div> Phones</a>
+      <a href="category.html?cat=Laptops" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-laptop"></i></div> Laptops</a>
+      <a href="category.html?cat=Fashion" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-tshirt"></i></div> Fashion</a>
+      <a href="category.html?cat=Fashion Accessories" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-glasses"></i></div> Accessories</a>
+      <a href="category.html?cat=Phone Accessories" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-headphones"></i></div> Phone Accessories</a>
+      <a href="category.html?cat=Gadgets" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-gamepad"></i></div> Gadgets</a>
+      <a href="category.html?cat=Food" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-utensils"></i></div> Food</a>
+      <a href="category.html?cat=Footwear" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-shoe-prints"></i></div> Footwear</a>
+      <a href="category.html?cat=Services" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-briefcase"></i></div>Services</a>
+      <a href="category.html?cat=Fragrance" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-air-freshener"></i></div>Fragrance</a>
+      <a href="category.html?cat=Hair Service" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-cut"></i></div>Hair Service</a>
+    <a href="category.html?cat=Pastries" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-bread-slice"></i></div>Pastries</a>
+    </section>
+
+    <section class="reviews-container">
+        <div class="section-header" style="padding: 0 14px;">
+            <div class="trending-title">Student Reviews</div>
+            <a href="reviews/" style="font-size:12px; color:var(--primary-blue); font-weight:600; text-decoration:none;">See all</a>
         </div>
-    </header>
-
-    <section class="py-8 bg-brand-accent text-black overflow-hidden border-y border-brand-accent">
-        <div class="whitespace-nowrap">
-            <div class="animate-marquee inline-block font-display text-4xl md:text-6xl font-bold uppercase tracking-tight">
-                Strategy • Growth • Web3 • AI Integration • Brand Identity • UX/UI Design • Digital Assets • Strategy • Growth • Web3 • AI Integration • Brand Identity • UX/UI Design • Digital Assets •
-            </div>
+        <div class="reviews-slider" id="reviews-slider">
+            <div class="skeleton-card" style="min-width: 250px;"><div style="display:flex; gap:10px; margin-bottom:10px;"><div class="skeleton sk-img" style="width:40px; height:40px;"></div><div style="flex:1;"><div class="skeleton sk-text-short" style="width:60%; margin-bottom:5px;"></div><div class="skeleton sk-text-short" style="width:30%;"></div></div></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-text-long" style="width:70%;"></div></div>
         </div>
     </section>
 
-    <section class="py-32 px-6 relative">
-        <div class="max-w-7xl mx-auto">
-            <div class="mb-20">
-                <h2 class="font-display text-4xl md:text-6xl font-semibold tracking-tighter">The Ecosystem</h2>
-                <p class="text-gray-500 mt-4">Curated solutions for the modern digital economy.</p>
-            </div>
+    <section class="trending-section" id="items-section-container">
+      <div class="section-header">
+        <div class="trending-title">Available Items</div>
+        <a href="items/" style="font-size:12px; color:var(--primary-blue); font-weight:600; text-decoration:none;">See all</a>
+      </div>
+      <div class="trending-grid" id="home-items-grid">
+        <div class="skeleton-card"><div class="skeleton sk-img-rect"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
+        <div class="skeleton-card"><div class="skeleton sk-img-rect"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
+      </div>
+      <div class="see-all-container">
+          <a href="items/" class="see-all-btn-large">Go to see all items page</a>
+      </div>
+    </section>
 
-            <div class="grid grid-cols-1 md:grid-cols-4 grid-rows-4 md:grid-rows-3 gap-4 h-[1200px] md:h-[800px]">
-                
-                <div class="col-span-1 md:col-span-2 md:row-span-2 glass-card rounded-3xl p-8 flex flex-col justify-between group hover:bg-white/5 transition-all duration-500 cursor-pointer border-l-4 border-l-brand-accent">
-                    <div class="w-12 h-12 rounded-full bg-brand-accent/20 flex items-center justify-center text-brand-accent mb-4">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                    </div>
-                    <div>
-                        <h3 class="font-display text-3xl font-bold mb-2">Growth Hacking</h3>
-                        <p class="text-gray-400 text-sm">Data-driven performance marketing designed for scale.</p>
-                    </div>
-                    <div class="mt-4 flex justify-end">
-                        <span class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-brand-accent group-hover:text-black transition-all">→</span>
-                    </div>
-                </div>
+    <section id="recent-section" style="display:none; margin-top: 20px;">
+        <div class="section-header"><div class="trending-title" style="font-size: 14px; color: #555;">Recently Viewed</div></div>
+        <div class="trending-grid" id="recent-grid" style="display:flex; overflow-x:auto; gap:10px; padding-bottom:10px;"></div>
+    </section> 
 
-                <div class="col-span-1 md:col-span-1 md:row-span-1 glass-card rounded-3xl p-6 flex flex-col justify-between group hover:bg-white/5 transition-all">
-                    <h3 class="font-display text-xl font-bold text-gray-300 group-hover:text-white">UI/UX Labs</h3>
-                    <div class="h-20 w-full bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-xl mt-4 border border-white/5"></div>
-                </div>
+    <section class="trust-banner" style="display: flex; justify-content: space-around; background: #f9f9f9; padding: 15px; margin: 20px 0; border-radius: 8px;">
+        <div style="text-align: center;"><i class="fas fa-user-check" style="color: #2d8eff; font-size: 20px;"></i><div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Verified</div></div>
+        <div style="text-align: center;"><i class="fas fa-handshake" style="color: #2d8eff; font-size: 20px;"></i><div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Meetups</div></div>
+        <div style="text-align: center;"><i class="fas fa-headset" style="color: #2d8eff; font-size: 20px;"></i><div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Support</div></div>
+    </section>
 
-                <div class="col-span-1 md:col-span-1 md:row-span-2 glass-card rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group">
-                    <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:scale-110 transition-transform duration-700" alt="Abstract">
-                    <div class="relative z-10">
-                        <h3 class="font-display text-2xl font-bold">Brand<br>Identity</h3>
-                    </div>
-                    <p class="relative z-10 text-xs text-gray-300 mt-2">Visual systems that speak louder than words.</p>
-                </div>
-
-                <div class="col-span-1 md:col-span-2 md:row-span-1 glass-card rounded-3xl p-8 flex items-center justify-between group hover:bg-brand-accent transition-all duration-500">
-                    <div>
-                        <h3 class="font-display text-3xl font-bold group-hover:text-black">Start a Project</h3>
-                        <p class="text-gray-400 text-sm group-hover:text-black/70">Let's build something impossible.</p>
-                    </div>
-                    <div class="w-16 h-16 rounded-full bg-white/10 group-hover:bg-black group-hover:text-white flex items-center justify-center text-2xl">
-                        +
-                    </div>
-                </div>
-
-                <div class="col-span-1 md:col-span-1 md:row-span-1 bg-neutral-900 rounded-3xl p-6 flex items-center justify-center border border-white/10">
-                    <div class="text-center">
-                        <div class="text-4xl font-display font-bold text-brand-accent counter" data-target="98">0</div>
-                        <div class="text-xs text-gray-500 uppercase tracking-widest mt-1">NPS Score</div>
-                    </div>
-                </div>
-
-            </div>
+    <section class="pricing-promo-section" style="padding: 10px 14px 20px;">
+        <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px;">
+            <img src="https://i.ibb.co/FqH2cDnk/IMG-20260117-WA0008.jpg" alt="Vendor Pricing Plan" style="width: 100%; display: block;">
+        </div>
+        <div style="text-align: center;">
+            <a href="https://wa.me/2348144516127?text=I%20want%20to%20register%20as%20a%20vendor" style="background: #2d8eff; color: white; padding: 12px 35px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 4px 10px rgba(45, 142, 255, 0.3); display: inline-block;">Become a Vendor</a>
         </div>
     </section>
 
-    <section class="py-40 border-t border-white/10 relative">
-        <div class="max-w-7xl mx-auto px-6 text-center">
-            <p class="text-brand-accent font-mono mb-4">READY TO DEPLOY?</p>
-            <h2 class="font-display text-[8vw] leading-none font-bold uppercase tracking-tighter hover:text-stroke transition-all duration-500 cursor-pointer cta-trigger">
-                Let's Talk
-            </h2>
-            <div class="mt-10">
-                <a href="mailto:hello@afit.digital" class="inline-block border border-white/30 rounded-full px-10 py-4 text-sm font-bold uppercase tracking-widest hover:bg-brand-accent hover:text-black hover:border-brand-accent transition-all duration-300">
-                    hello@afit.digital
-                </a>
-            </div>
+    <section class="vendor-section-wrapper" id="vendor-section-container" style="padding: 0 14px 20px;">
+        <div class="section-header">
+            <div class="trending-title">Verified Vendors</div>
+            <a href="vendors/" style="font-size:12px; color:var(--primary-blue); font-weight:600; text-decoration:none;">See all</a>
         </div>
+       <div class="trending-grid" id="vendor-grid">
+           <div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-text-short"></div></div>
+           <div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-text-short"></div></div>
+       </div>
+       <div class="see-all-container">
+        <a href="vendors/" class="see-all-btn-large">Go to see all vendors</a>
+    </div>
     </section>
 
-    <footer class="pb-10 px-6">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-end border-t border-white/10 pt-10">
-            <div>
-                <div class="text-2xl font-display font-bold">AFIT</div>
-                <p class="text-gray-500 text-sm mt-2">© 2026 Afit Digital Market.</p>
-            </div>
-            <div class="flex gap-6 mt-6 md:mt-0">
-                <a href="#" class="text-gray-400 hover:text-brand-accent text-sm">Instagram</a>
-                <a href="#" class="text-gray-400 hover:text-brand-accent text-sm">Twitter / X</a>
-                <a href="#" class="text-gray-400 hover:text-brand-accent text-sm">LinkedIn</a>
-            </div>
+    <footer class="site-footer">
+        <div class="footer-newsletter" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #444; text-align: center;">
+            <h4 style="color: white; margin-bottom: 8px; font-size: 14px;">Join our Community</h4>
+            <p style="font-size: 11px; color: #aaa; margin-bottom: 12px;">Get updates on new vendors and flash sales.</p>
+            <form action="https://formspree.io/f/YOUR_NEWSLETTER_CODE_HERE" method="POST" style="display: flex; justify-content: center; gap: 8px; max-width: 300px; margin: 0 auto;">
+                <input type="email" name="email" placeholder="Enter email" required style="width: 70%; padding: 8px 12px; border-radius: 20px; border: none; outline: none; font-size: 12px;">
+                <button type="submit" style="width: 30%; background: var(--primary-blue); color: white; border: none; padding: 8px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer;">Join</button>
+            </form>
+            
+            <button id="manual-install-btn" style="display: none; background: #2d8eff; color: white; border: none; padding: 10px 25px; border-radius: 25px; font-weight: bold; font-size: 13px; margin-top: 20px; cursor: pointer;">
+              <i class="fas fa-cloud-download-alt"></i> Install ADM App
+            </button>
         </div>
+        <div class="footer-links">
+            <a href="about-us/">About Us</a> | <a href="faq/">FAQ</a> | <a href="t&c/">T & C</a> | <a href="contact-us/">Contact</a>
+        </div>
+        <p style="margin-top:20px; color:#777; font-size: 12px;">
+    &copy; 2026 All rights reserved. Powered by 
+    <a href="https://brightsitedev.tech" target="_blank" style="color:#2d8eff; text-decoration:none; font-weight:bold;">Brightsitedev</a>
+</p>
     </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+    <div id="promo-modal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <img id="modal-img" src="img/ads.png" alt="Promo" class="modal-img">
+        <div class="promo-text">
+            <h3 id="modal-title"></h3>
+            <p id="modal-text"></p>
+            <a id="modal-link" href="#" class="modal-btn">View Details</a>
+        </div>
+      </div>
+    </div>
+    
+    <div id="login-modal" class="login-modal-overlay">
+        <div class="login-box">
+            <div style="text-align:right;">
+                <span onclick="document.getElementById('login-modal').style.display='none'" style="cursor:pointer; font-size:20px; color:#999;">&times;</span>
+            </div>
+            <img src="img/logo-blue.png" style="width: 50px; margin-bottom: 10px;">
+            <h3 style="margin: 0; font-size: 16px; color:#333;">Welcome to AFIT Market</h3>
+            <p style="font-size: 12px; color: #777; margin: 10px 0;">Sign in to save items and customize your profile.</p>
+            <button id="popup-google-btn" class="google-btn-small" style="width:100%; padding:10px; background:white; border:1px solid #ddd; border-radius:20px; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer;">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
+                Sign in with Google
+            </button>
+            <p style="margin-top:15px; font-size:11px; color:#aaa; cursor:pointer;" onclick="document.getElementById('login-modal').style.display='none'">Maybe later</p>
+        </div>
+    </div>
 
-    <script>
-        // 1. Initialize Lenis Smooth Scroll
-        const lenis = new Lenis({
-            duration: 1.2,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-            direction: 'vertical',
-            gestureDirection: 'vertical',
-            smooth: true,
-            mouseMultiplier: 1,
-            smoothTouch: false,
-            touchMultiplier: 2,
-        });
+    <div id="detail-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; justify-content:center; align-items:end;">
+        <div class="modal-sheet">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <h3 id="m-title" style="margin:0; font-size:18px; width:90%; line-height:1.3;">...</h3>
+                <button onclick="document.getElementById('detail-modal').style.display='none'" style="background:none; border:none; font-size:24px; color:#555; cursor:pointer;">&times;</button>
+            </div>
+            <p id="m-price" style="color:#2d8eff; font-weight:bold; font-size:20px; margin:10px 0;">...</p>
+            
+            <div class="desc-box">
+                 <p id="m-desc" style="color:#555; font-size:14px; line-height:1.5; margin:0;">...</p>
+            </div>
 
-        function raf(time) {
-            lenis.raf(time);
-            requestAnimationFrame(raf);
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                 <span id="m-category" style="font-size:12px; color:#888; font-weight:bold;"></span>
+            </div>
+
+            <a id="m-btn" href="#" target="_blank" class="chat-btn" style="width:100%; text-align:center; display:block; padding:15px; border-radius:10px;">
+                <i class="fab fa-whatsapp"></i> Chat with Vendor
+            </a>
+
+            <div id="similar-wrapper" style="display:none; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
+                <div style="font-size: 12px; font-weight: bold; color: #555; margin-bottom: 10px;">You might also like</div>
+                <div class="similar-grid" id="m-similar-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="install-popup" style="display: none; position: fixed; bottom: 20px; left: 5%; width: 90%; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 5000; text-align: center; animation: zoomIn 0.3s ease;">
+        <img src="img/logo-blue.png" style="width: 50px; margin-bottom: 10px;">
+        <h3 style="margin: 0; font-size: 16px; color: #333;">Install AFIT Market App</h3>
+        <p style="font-size: 12px; color: #777; margin: 5px 0 15px;">Get better experience and faster access!</p>
+        <button id="install-btn" style="background: #2d8eff; color: white; border: none; padding: 10px 30px; border-radius: 20px; font-weight: bold; width: 100%;">Install Now</button>
+        <button onclick="document.getElementById('install-popup').style.display='none'" style="background: none; border: none; color: #999; font-size: 12px; margin-top: 10px;">Maybe later</button>
+    </div>
+
+    <a href="https://wa.me/2349153375488?text=Hello%20Admin" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp my-float"></i>
+        <span class="tooltip-text">Chat with Admin</span>
+    </a>
+
+  </div>
+
+  <script src="asset/script.js"></script>
+
+  <script type="module">
+
+    // Register Service Worker correctly
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log("SW Registered!", reg))
+        .catch(err => console.log("SW Manual Error:", err));
+    }
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    // ✅ ADDED "where" and "limit" to imports
+    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc, where } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+        authDomain: "afit-market-auth.firebaseapp.com",
+        projectId: "afit-market-auth",
+        storageBucket: "afit-market-auth.firebasestorage.app",
+        messagingSenderId: "894920886640",
+        appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    let savedItemIds = new Set();
+    const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+    const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
+    const ADMIN_PHONE = "2348144516127"; 
+    let allProducts = [];
+    let allVendors = [];
+    let globalPhoneBook = {}; 
+    let suspendedVendors = new Set(); 
+
+    // --- 🔵 PWA INSTALLATION SYSTEM ---
+    let deferredPrompt;
+    
+    window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('App is installable...');
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        setTimeout(() => {
+            const popup = document.getElementById('install-popup');
+            if(popup) popup.style.display = 'block';
+        }, 4000);
+
+        const footerBtn = document.getElementById('manual-install-btn');
+        if(footerBtn) footerBtn.style.display = 'inline-block';
+    });
+
+    const triggerAppInstall = async () => {
+        if (!deferredPrompt) {
+            alert("App is already installed or your browser doesn't support installation.");
+            return;
         }
-        requestAnimationFrame(raf);
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to install: ${outcome}`);
+        deferredPrompt = null;
+        document.getElementById('install-popup').style.display = 'none';
+        document.getElementById('manual-install-btn').style.display = 'none';
+    };
 
-        // 2. Custom Cursor Logic
-        const cursorDot = document.querySelector('.cursor-dot');
-        const cursorOutline = document.querySelector('.cursor-outline');
-        
-        window.addEventListener('mousemove', (e) => {
-            const posX = e.clientX;
-            const posY = e.clientY;
+    document.getElementById('install-btn').addEventListener('click', triggerAppInstall);
+    document.getElementById('manual-install-btn').addEventListener('click', triggerAppInstall);
+    
+    window.addEventListener('appinstalled', () => {
+        console.log('App was successfully installed');
+        document.getElementById('install-popup').style.display = 'none';
+        document.getElementById('manual-install-btn').style.display = 'none';
+    });
+    // --- 🔴 END INSTALLATION SYSTEM ---
 
-            cursorDot.style.left = `${posX}px`;
-            cursorDot.style.top = `${posY}px`;
+    setupMainSearch();
+    loadAds(); 
+    initData();
+    loadAnnouncement(); 
+    loadReviews(); // ✅ CALL THE NEW REVIEWS FUNCTION
 
-            // Add some lag to the outline for fluid feel
-            cursorOutline.animate({
-                left: `${posX}px`,
-                top: `${posY}px`
-            }, { duration: 500, fill: "forwards" });
-        });
+    async function loadAnnouncement() {
+        try {
+            const docSnap = await getDoc(doc(db, "settings", "global_alert"));
+            if(docSnap.exists() && docSnap.data().active) {
+                const banner = document.getElementById('global-announcement');
+                document.getElementById('announce-text').innerText = docSnap.data().message;
+                banner.style.display = 'block';
+            }
+        } catch(e) { console.error("Banner error:", e); }
+    }
 
-        // Hover effects for cursor
-        const interactiveElements = document.querySelectorAll('a, button, .glass-card, .cta-trigger');
-        interactiveElements.forEach(el => {
-            el.addEventListener('mouseenter', () => {
-                cursorOutline.style.transform = 'translate(-50%, -50%) scale(2.5)';
-                cursorOutline.style.backgroundColor = 'rgba(204, 255, 0, 0.1)';
-                cursorDot.style.opacity = '0';
+    onAuthStateChanged(auth, async (user) => {
+        const headerBtn = document.getElementById('header-profile-btn');
+        if (user) {
+            headerBtn.innerHTML = `<img src="${user.photoURL}" class="header-profile-img" alt="Profile">`;
+            try {
+                const querySnapshot = await getDocs(collection(db, "users", user.uid, "saved_items"));
+                savedItemIds.clear();
+                querySnapshot.forEach((doc) => { savedItemIds.add(doc.id); });
+                updateHeartIcons(); 
+            } catch (e) { console.error("Error loading wishlist:", e); }
+        } else {
+            headerBtn.innerHTML = `<i class="far fa-user" style="padding: 8px;"></i>`;
+            savedItemIds.clear();
+            updateHeartIcons(); 
+            setTimeout(() => {
+                if(!sessionStorage.getItem('loginPopupDismissed')) {
+                    document.getElementById('login-modal').style.display = 'flex';
+                }
+            }, 5000);
+        }
+    });
+
+    document.getElementById('popup-google-btn').addEventListener('click', () => {
+        signInWithPopup(auth, provider)
+            .then((result) => {
+                document.getElementById('login-modal').style.display = 'none';
+                sessionStorage.setItem('loginPopupDismissed', 'true');
+            }).catch((error) => { alert("Login failed: " + error.message); });
+    });
+
+    async function initData() {
+        try {
+            const suspendedSnap = await getDocs(collection(db, "vendor_status"));
+            suspendedSnap.forEach(doc => { if (doc.data().status === "suspended") suspendedVendors.add(doc.id); });
+
+            // ✅ FETCH BOTH SHEETS & MERGE
+            const [vendors1, vendors2] = await Promise.all([
+                fetch(`${apiRoot}/Vendors`).then(res => res.json()),
+                fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => []))
+            ]);
+
+            // Combine
+            const combinedVendors = [...vendors1, ...vendors2];
+
+            // Filter
+            allVendors = combinedVendors.filter(v => {
+                const vid = v.vendor_id || v.Vendor_ID;
+                const isSuspended = suspendedVendors.has(vid);
+                
+                // Check Verified (FALSE in V2 means invisible)
+                const verifyStatus = String(v.verified || v.Verified || "").toLowerCase().trim();
+                const isHidden = verifyStatus === "false";
+
+                return !isSuspended && !isHidden;
             });
-            el.addEventListener('mouseleave', () => {
-                cursorOutline.style.transform = 'translate(-50%, -50%) scale(1)';
-                cursorOutline.style.backgroundColor = 'transparent';
-                cursorDot.style.opacity = '1';
+
+            allVendors.forEach(v => {
+                const vID = v.vendor_id || v.Vendor_ID;
+                const vPhone = v.whatsapp || v.Whatsapp;
+                if(vID) globalPhoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
             });
-        });
 
-        // 3. GSAP Animations
-        gsap.registerPlugin(ScrollTrigger);
-
-        // Hero Text Reveal
-        const tl = gsap.timeline();
-        
-        tl.from('.reveal-text', {
-            y: 200,
-            duration: 1.5,
-            ease: "power4.out",
-            stagger: 0.2,
-            skewY: 7
-        })
-        .from('.reveal-bar', {
-            width: 0,
-            duration: 1,
-            ease: "power3.inOut"
-        }, "-=1")
-        .to('.hero-sub', {
-            opacity: 1,
-            y: 0,
-            duration: 1
-        }, "-=0.5");
-
-        // Bento Grid Reveal on Scroll
-        gsap.utils.toArray('.glass-card, .bg-neutral-900').forEach((card, i) => {
-            gsap.from(card, {
-                scrollTrigger: {
-                    trigger: card,
-                    start: "top 85%",
-                },
-                y: 50,
-                opacity: 0,
-                duration: 1,
-                ease: "power3.out",
-                delay: i * 0.1
+            const randomVendors = shuffle(allVendors).slice(0, 20); 
+            renderVendors(randomVendors);
+            
+            const productsRes = await fetch(`${apiRoot}/Products`);
+            const sheetProducts = await productsRes.json();
+            const firestoreProducts = await loadFirestoreProducts();
+            
+            let combined = [...sheetProducts, ...firestoreProducts];
+            allProducts = combined.filter(p => !suspendedVendors.has(p.vendor_id || p.Vendor_ID));
+            
+            renderStories(allProducts, globalPhoneBook);
+            
+            const featured = [];
+            const normal = [];
+            
+            allProducts.forEach(p => {
+                if (p.status !== "Sold") { 
+                    if (p.is_featured === "true") featured.push(p);
+                    else normal.push(p);
+                }
             });
-        });
 
-        // Counter Animation
-        const counter = document.querySelector('.counter');
-        gsap.to(counter, {
-            innerText: 98,
-            duration: 2,
-            snap: { innerText: 1 },
-            scrollTrigger: {
-                trigger: counter,
-                start: "top 80%"
+            const shuffledNormal = shuffle(normal);
+            const displayList = [...featured, ...shuffledNormal].slice(0, 20);
+
+            renderItems(displayList); 
+            loadRecentItems();
+
+        } catch (err) { console.error("Init Error:", err); }
+    }
+
+    async function loadFirestoreProducts() {
+        try {
+            const q = query(collection(db, "products")); 
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({
+                id: doc.id, 
+                ...doc.data()
+            }));
+        } catch(e) { return []; }
+    }
+
+    // --- ✅ NEW FIRESTORE REVIEWS LOGIC ---
+    async function loadReviews() {
+        const container = document.getElementById('reviews-slider');
+        if (!container) return;
+
+        try {
+            // Fetch reviews where status is approved
+            const q = query(collection(db, "reviews"), where("status", "==", "approved"));
+            const snapshot = await getDocs(q);
+
+            let reviewsData = [];
+            snapshot.forEach(doc => {
+                reviewsData.push(doc.data());
+            });
+
+            if (reviewsData.length > 0) {
+                container.innerHTML = ""; 
+                // Shuffle and pick 5
+                const shuffled = shuffle(reviewsData).slice(0, 5);
+
+                shuffled.forEach(r => {
+                    // Use FontAwesome stars
+                    const starCount = r.rating || 5;
+                    const starString = '<i class="fas fa-star" style="color:#FFD700;"></i>'.repeat(starCount);
+
+                    let img = r.image || "img/person.png";
+                    if (!img.startsWith('http') && !img.startsWith('img/')) img = `img/${img}`;
+
+                    container.innerHTML += `
+                    <div class="review-card">
+                        <div class="review-header">
+                            <img src="${img}" class="review-img" onerror="this.src='img/person.png'">
+                            <div>
+                                <div class="review-name">${r.name || "Student"}</div>
+                                <div class="stars" style="font-size:10px;">${starString}</div>
+                            </div>
+                        </div>
+                        <div class="review-text">"${r.review}"</div>
+                    </div>`;
+                });
+            } else {
+                 container.innerHTML = "<p style='padding:20px; text-align:center; color:#777; font-size:12px;'>No reviews yet. Check back soon!</p>";
+            }
+        } catch (e) {
+            console.error("Error loading reviews:", e);
+        }
+    }
+    // --------------------------------------
+
+    window.toggleSave = async function(id, name, price, image, vendor) {
+        const user = auth.currentUser;
+        if (!user) { document.getElementById('login-modal').style.display = 'flex'; return; }
+        const btn = document.getElementById(`save-${id}`);
+        const icon = btn.querySelector('i');
+        const userRef = doc(db, "users", user.uid, "saved_items", id);
+
+        if (savedItemIds.has(id)) {
+            savedItemIds.delete(id);
+            await deleteDoc(userRef);
+        } else {
+            savedItemIds.add(id);
+            await setDoc(userRef, { product_id: id, name, price, image, vendor, saved_at: new Date() });
+        }
+        updateHeartIcons(); 
+    };
+
+    function updateHeartIcons() {
+        document.querySelectorAll('.save-btn').forEach(btn => {
+            const id = btn.id.replace('save-', '');
+            const icon = btn.querySelector('i');
+            if (savedItemIds.has(id)) {
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                icon.style.color = '#ff4757';
+            } else {
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+                icon.style.color = '#777';
             }
         });
+    }
 
-    </script>
+    window.viewProduct = function(name, price, desc, img, phone, category) {
+        document.getElementById('m-title').innerText = name;
+        document.getElementById('m-price').innerText = price;
+        document.getElementById('m-desc').innerText = desc || "No description provided.";
+        document.getElementById('m-category').innerText = "Category: " + category;
+        document.getElementById('m-btn').href = `https://wa.me/${phone}?text=${encodeURIComponent(`Hi, I saw "${name}" on AFIT Market. Is it available?`)}`;
+        
+        const similarWrapper = document.getElementById('similar-wrapper');
+        const similarGrid = document.getElementById('m-similar-grid'); 
+        similarGrid.innerHTML = "";
+
+        if (category && allProducts.length > 0) {
+            const similarItems = allProducts.filter(p => (p.category || p.Category) === category && (p.name || p.Name) !== name);
+            const picked = similarItems.sort(() => 0.5 - Math.random()).slice(0, 3);
+
+            if (picked.length > 0) {
+                similarWrapper.style.display = 'block';
+                picked.forEach(p => {
+                    const sName = p.name || p.Name;
+                    const sPrice = p.price || p.Price;
+                    const sImg = (p.image || p.Image).startsWith('http') ? (p.image || p.Image) : `img/${p.image || p.Image}`;
+                    const sVendor = p.vendor_id || p.Vendor_ID;
+                    const sPhone = globalPhoneBook[sVendor] || ADMIN_PHONE;
+                    const safeName = sName.replace(/'/g, "\\'");
+                    const safeDesc = (p.description || "No description").replace(/'/g, "\\'").replace(/\n/g, " ");
+
+                    similarGrid.innerHTML += `
+                    <div class="sim-card" onclick="viewProduct('${safeName}', '${sPrice}', '${safeDesc}', '${sImg}', '${sPhone}', '${category}')">
+                        <img src="${sImg}" class="sim-img" onerror="this.src='img/logo-blue.png'">
+                        <div class="sim-price">${sPrice}</div>
+                    </div>`;
+                });
+            } else { similarWrapper.style.display = 'none'; }
+        } else { similarWrapper.style.display = 'none'; }
+
+        document.getElementById('detail-modal').style.display = 'flex';
+    };
+
+    window.closeProductModal = function() {
+        document.getElementById('detail-modal').style.display = 'none';
+    };
+
+    window.addToHistory = function(id, name, price, image, vendor, desc) {
+        let history = JSON.parse(localStorage.getItem('adm_history')) || [];
+        history = history.filter(item => item.id !== id);
+        history.unshift({ id, name, price, image, vendor, desc, seenAt: Date.now() });
+        if(history.length > 6) history.pop();
+        localStorage.setItem('adm_history', JSON.stringify(history));
+    };
+
+    function loadRecentItems() {
+        let history = JSON.parse(localStorage.getItem('adm_history')) || [];
+        const container = document.getElementById('recent-grid');
+        const section = document.getElementById('recent-section');
+        const TEN_MINUTES = 10 * 60 * 1000;
+
+        history = history.filter(item => {
+            const isFresh = (Date.now() - (item.seenAt || 0)) < TEN_MINUTES;
+            const isVendorValid = globalPhoneBook[item.vendor]; 
+            return isFresh && isVendorValid;
+        });
+        localStorage.setItem('adm_history', JSON.stringify(history));
+
+        if(history.length > 0 && container) {
+            section.style.display = 'block';
+            container.innerHTML = "";
+            history.forEach(p => {
+                const liveItem = allProducts.find(prod => prod.id === p.id);
+                const liveDesc = liveItem ? (liveItem.description || liveItem.Description) : p.desc;
+                
+                const vendorPhone = globalPhoneBook[p.vendor] || ADMIN_PHONE;
+                const img = p.image.startsWith('http') ? p.image : `img/${p.image}`;
+                const category = "General"; 
+                const safeName = p.name.replace(/'/g, "\\'");
+                const safeDesc = (liveDesc || "No description.").replace(/'/g, "\\'").replace(/\n/g, " ");
+
+                container.innerHTML += `
+                <div class="ad-card" style="min-width: 140px;"> 
+                    <img class="ad-img" src="${img}" alt="${p.name}" onerror="this.src='img/logo-blue.png'"
+                         onclick="viewProduct('${safeName}', '${p.price}', '${safeDesc}', '${img}', '${vendorPhone}', '${category}')">
+                    <div class="ad-info">
+                        <div class="ad-price" style="font-size:12px;">${p.price}</div>
+                        <div class="ad-title" style="font-size:11px;">${p.name}</div>
+                        <button onclick="viewProduct('${safeName}', '${p.price}', '${safeDesc}', '${img}', '${vendorPhone}', '${category}')" class="chat-btn" style="width:100%; border:none; margin-top:5px; padding:4px 10px; font-size:10px; cursor:pointer;">Get</button>
+                    </div>
+                </div>`;
+            });
+        } else if(section) {
+            section.style.display = 'none';
+        }
+    }
+
+    function loadAds() {
+        fetch(`${apiRoot}/Ads`)
+        .then(res => res.json())
+        .then(data => {
+            const activeAds = data.filter(ad => String(ad.status || ad.Status).toLowerCase().trim() === "active");
+            if(activeAds.length > 0) {
+                const ad = activeAds[Math.floor(Math.random() * activeAds.length)];
+                const img = ad.image || ad.Image;
+                const title = ad.title || ad.Title;
+                const text = ad.text || ad.Text;
+                const waPhone = ad.whatsapp || ad.Whatsapp;
+                const cleanPhone = waPhone ? String(waPhone).replace(/[^0-9]/g, '') : ADMIN_PHONE;
+                const link = `https://wa.me/${cleanPhone}?text=Hi,%20I%20saw%20your%20ad%20"${title}"`;
+
+                const modalImg = document.getElementById('modal-img'); if(modalImg) modalImg.src = img.startsWith('http') ? img : `img/${img}`;
+                document.getElementById('modal-title').innerText = title;
+                document.getElementById('modal-text').innerText = text;
+                const modalLink = document.getElementById('modal-link'); if(modalLink) { modalLink.href = link; modalLink.innerText = "Chat on WhatsApp"; }
+                
+                const notifBtn = document.getElementById('notif-btn');
+                if(notifBtn && !notifBtn.querySelector('.badge-dot')) {
+                    notifBtn.style.position = 'relative';
+                    notifBtn.innerHTML += `<span class="badge-dot" style="position:absolute; top:5px; right:5px; width:10px; height:10px; background:#ff4757; border-radius:50%; border:2px solid white;"></span>`;
+                    notifBtn.addEventListener('click', () => { document.getElementById('promo-modal').style.display = 'flex'; });
+                }
+                setTimeout(() => { const modal = document.getElementById('promo-modal'); if(modal) { modal.style.display = 'flex'; } }, 2500);
+            }
+        }).catch(err => console.log("No Ads Found"));
+    }
+    const closeAdBtn = document.querySelector('.close-modal'); if(closeAdBtn) { closeAdBtn.addEventListener('click', () => { document.getElementById('promo-modal').style.display = 'none'; }); }
+
+    function renderStories(products, phoneBook) {
+        const container = document.getElementById('stories-list');
+        const section = document.getElementById('stories-section');
+        const stories = products.filter(p => String(p.is_story || p.Is_Story).toLowerCase() === "true");
+        if(stories.length > 0) {
+            section.style.display = 'block';
+            container.innerHTML = "";
+            stories.forEach(p => {
+                const pName = p.name || p.Name;
+                const pImage = p.image || p.Image;
+                const pPrice = p.price || p.Price;
+                const pVendor = p.vendor_id || p.Vendor_ID;
+                const pDesc = p.description || p.Description || ""; 
+                const pCat = p.category || p.Category || "General";
+                const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
+                const vendorPhone = phoneBook[pVendor] || ADMIN_PHONE;
+                const pID = p.id;
+                
+                const storyDiv = document.createElement('div');
+                storyDiv.className = 'story-item';
+                storyDiv.innerHTML = `<div class="story-ring"><img src="${img}" class="story-img" alt="${pName}" onerror="this.src='img/logo-blue.png'"></div><div class="story-name">${pName}</div>`;
+                
+                const safeDesc = pDesc.replace(/'/g, "\\'").replace(/\n/g, " ");
+                
+                storyDiv.addEventListener('click', () => {
+                   viewProduct(pName, pPrice, pDesc, img, vendorPhone, pCat);
+                   addToHistory(pID, pName, pPrice, pImage, pVendor, safeDesc);
+                });
+                container.appendChild(storyDiv);
+            });
+        }
+    }
+
+    function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
+    
+    // --- OLD REVIEWS CODE REMOVED ---
+
+    function setupMainSearch() {
+        const searchInput = document.getElementById('main-search');
+        const searchType = document.getElementById('search-type');
+        
+        if(searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                const type = searchType.value; 
+                if(query === "") {
+                    initData();
+                    return;
+                }
+                if (type === 'product') {
+                    renderItems(allProducts.filter(p => (p.name || p.Name).toLowerCase().includes(query)));
+                } else if (type === 'vendor') {
+                    renderVendors(allVendors.filter(v => (v.business_name || v.Business_Name).toLowerCase().includes(query)));
+                }
+            });
+
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); 
+                    searchInput.blur(); 
+                    
+                    const type = searchType.value;
+                    if(type === 'product') {
+                         document.getElementById('items-section-container').scrollIntoView({behavior: 'smooth'});
+                    } else {
+                         document.getElementById('vendor-section-container').scrollIntoView({behavior: 'smooth'});
+                    }
+                }
+            });
+        }
+    }
+
+    function renderItems(data) {
+        const itemGrid = document.getElementById("home-items-grid");
+        if(!itemGrid) return;
+        itemGrid.innerHTML = ""; 
+        data.forEach(p => {
+            const pName = p.name || p.Name;
+            const pPrice = p.price || p.Price;
+            const pVendor = p.vendor_id || p.Vendor_ID;
+            const pImage = p.image || p.Image;
+            const pDesc = p.description || p.Description || "";
+            const pCat = p.category || p.Category || "General";
+            const pStatus = p.status || p.Status || "Active"; 
+            const isFeatured = p.is_featured === "true"; 
+            const pID = p.id; 
+
+            const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
+            const vendorPhone = globalPhoneBook[pVendor] || ADMIN_PHONE;
+            const isSaved = savedItemIds.has(pID);
+            const heartClass = isSaved ? 'fas' : 'far';
+            const heartColor = isSaved ? '#ff4757' : '#777';
+
+            const safeName = pName.replace(/'/g, "\\'");
+            const safeDesc = pDesc.replace(/'/g, "\\'").replace(/\n/g, " ");
+
+            const isSold = pStatus === "Sold";
+            const opacity = isSold ? 'opacity:0.6;' : '';
+            
+            let badge = isSold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : 
+                        isFeatured ? '<span style="background:#f1c40f; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10; font-weight:bold;">⭐ Sponsored</span>' : '';
+
+            const clickAction = isSold ? "" : `onclick="viewProduct('${safeName}', '${pPrice}', '${safeDesc}', '${img}', '${vendorPhone}', '${pCat}'); addToHistory('${pID}', '${safeName}', '${pPrice}', '${pImage}', '${pVendor}', '${safeDesc}')"`;
+            const btnText = isSold ? "Sold" : "Get";
+            const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
+
+            itemGrid.innerHTML += `
+            <div class="ad-card" style="position:relative; ${opacity}">
+                ${badge}
+                <button onclick="toggleSave('${pID}', '${safeName}', '${pPrice}', '${pImage}', '${pVendor}')" 
+                        class="save-btn" id="save-${pID}"
+                        style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
+                    <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
+                </button>
+                <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='img/logo-blue.png'" ${clickAction}>
+                <div class="ad-info">
+                    <div class="ad-price">${pPrice}</div>
+                    <div class="ad-title">${pName}</div>
+                    <div class="ad-desc-preview">${pDesc}</div>
+                    <div class="ad-location">Vendor: ${pVendor}</div>
+                    <button ${clickAction} class="chat-btn" style="width:100%; border:none; margin-top:5px; cursor:pointer; padding: 10px; ${btnStyle}">${btnText}</button>
+                </div>
+            </div>`;
+        });
+    }
+
+    function renderVendors(data) {
+        const vendorGrid = document.getElementById("vendor-grid");
+        if(!vendorGrid) return;
+        vendorGrid.innerHTML = "";
+        data.forEach(v => {
+            const vName = v.business_name || v.Business_Name;
+            const vDesc = v.description || v.Description;
+            const vImage = v.image || v.Image;
+            const vID = v.vendor_id || v.Vendor_ID;
+            const vVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
+            const vImg = vImage.startsWith('http') ? vImage : `img/${vImage}`;
+            let badgeHtml = "";
+            if (vVerified === "gold") badgeHtml = '<i class="fas fa-check-circle tick-gold"></i>';
+            else if (vVerified === "blue") badgeHtml = '<i class="fas fa-check-circle tick-blue"></i>';
+            
+            vendorGrid.innerHTML += `
+            <div class="vendor-card">
+                <img src="${vImg}" class="vendor-logo" onerror="this.src='img/person.png'">
+                <span class="vendor-id">${vID}</span>
+                <div class="vendor-name">${vName} ${badgeHtml}</div>
+                <div class="vendor-cat">${vDesc.substring(0, 20)}...</div>
+                <button class="view-vendor-btn" onclick="window.location.href='profile.html?vendor=${vID}'">View Vendor</button>
+            </div>`;
+        });
+    }
+</script>
 </body>
 </html>

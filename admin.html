@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin - AFIT Digital Market</title>
+    <link rel="stylesheet" href="asset/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="img/app-logo.png">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    
+    <style>
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; padding-bottom: 50px; margin: 0; }
+        
+        .admin-header {
+            background: #2d3436; color: white; padding: 15px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000;
+        }
+        
+        .container { max-width: 900px; margin: 20px auto; padding: 0 15px; }
+        
+        .section-title { 
+            margin: 35px 0 15px; color: #2d3436; border-bottom: 2px solid #dfe6e9; 
+            padding-bottom: 10px; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px;
+        }
+
+        /* CARDS */
+        .admin-card {
+            background: white; padding: 20px; border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px;
+            border-left: 5px solid #ccc;
+        }
+        
+        .card-orange { border-color: #e67e22; }
+        .card-purple { border-color: #9b59b6; }
+        .card-yellow { border-color: #f1c40f; }
+        .card-blue { border-color: #2d8eff; }
+        .card-red { border-color: #e74c3c; }
+
+        .btn-action { 
+            padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; 
+            cursor: pointer; font-size: 13px; transition: transform 0.2s;
+        }
+        .btn-action:active { transform: scale(0.98); }
+
+        /* SEARCH BARS */
+        .search-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        .admin-input {
+            flex: 1; padding: 12px; border: 1px solid #ddd;
+            border-radius: 8px; font-size: 14px; outline: none;
+        }
+        .btn-search { background: #2d3436; color: white; }
+
+        /* MODAL STYLES */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.5); z-index: 2000; backdrop-filter: blur(3px);
+            overflow-y: auto;
+        }
+        .modal-body {
+            background: white; width: 90%; max-width: 700px; margin: 50px auto;
+            border-radius: 15px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative; animation: slideUp 0.3s;
+        }
+        @keyframes slideUp { from {transform: translateY(20px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }
+
+        /* RESULTS LISTS */
+        .result-item {
+            background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid #eee;
+        }
+        .result-info h4 { margin: 0 0 5px 0; font-size: 16px; color: #333; }
+        .result-info p { margin: 0; font-size: 12px; color: #777; }
+
+        /* REVIEW SPECIFIC */
+        .review-card { 
+            background: #fff; border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 8px;
+        }
+        .review-status { font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-approved { background: #d4edda; color: #155724; }
+
+        /* PRODUCT GRID */
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 15px; }
+        .p-card { background: white; padding: 10px; border-radius: 10px; border: 1px solid #eee; position: relative; }
+        .p-img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
+        .p-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee; }
+        
+        /* TOGGLES */
+        .switch { position: relative; display: inline-block; width: 34px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; border-radius: 34px; transition: .4s; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; border-radius: 50%; transition: .4s; }
+        input:checked + .slider { background-color: #ff4757; }
+        input:checked + .slider:before { transform: translateX(14px); }
+
+        .btn-star { background: none; border: none; font-size: 20px; color: #ddd; cursor: pointer; }
+        .btn-star.active { color: #f1c40f; }
+
+        #loading { margin-top: 100px; text-align: center; color: #555; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-header">
+        <div>
+            <h3 style="margin:0;">⚡ Super Admin</h3>
+            <div style="font-size:11px; opacity:0.8; letter-spacing:1px;">COMMAND CENTER</div>
+        </div>
+        <a href="index.html" style="color:white; text-decoration:none; border:1px solid white; padding:5px 15px; border-radius:20px; font-size:12px;">Exit</a>
+    </div>
+
+    <div id="loading">
+        <i class="fas fa-circle-notch fa-spin" style="font-size:30px; margin-bottom:15px; color:#2d3436;"></i>
+        <div>Verifying Clearance...</div>
+    </div>
+
+    <div id="admin-content" class="container" style="display:none;">
+        
+        <h4 class="section-title"><i class="fas fa-bullhorn"></i> Global Announcement</h4>
+        <div class="admin-card card-orange">
+            <input type="text" id="announce-input" class="admin-input" placeholder="e.g. Site maintenance at 10 PM...">
+            <div style="margin-top:10px; display:flex; gap:10px;">
+                <button onclick="postAnnouncement()" class="btn-action" style="background:#2d8eff; color:white;">Post Live</button>
+                <button onclick="clearAnnouncement()" class="btn-action" style="background:#ff4757; color:white;">Clear</button>
+            </div>
+        </div>
+
+        <h4 class="section-title"><i class="fas fa-newspaper"></i> Blog Manager</h4>
+        <div class="admin-card card-purple">
+            <p style="margin:0 0 10px; color:#555;">Create and edit news posts.</p>
+            <button onclick="openBlogManager()" class="btn-action" style="background:#9b59b6; color:white; width:100%;">
+                <i class="fas fa-edit"></i> Open Blog Dashboard
+            </button>
+        </div>
+
+        <h4 class="section-title"><i class="fas fa-star"></i> Review Approvals</h4>
+        <div class="admin-card card-yellow">
+            <p style="margin:0 0 10px; color:#555;">Approve or delete user reviews.</p>
+            <button onclick="openReviewManager()" class="btn-action" style="background:#f1c40f; color:white; width:100%; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                <i class="fas fa-check-double"></i> Open Review Manager
+            </button>
+        </div>
+
+        <h4 class="section-title"><i class="fas fa-users-cog"></i> Vendor Management</h4>
+        <div class="admin-card card-red">
+            <p style="margin:0 0 10px; color:#555;">Search by <b>Name, ID, or Email</b> to manage status.</p>
+            <div class="search-group">
+                <input type="text" id="vendor-search-input" class="admin-input" placeholder="e.g. V001 or Joseph">
+                <button onclick="searchVendor()" class="btn-action btn-search">Search</button>
+            </div>
+            <div id="vendor-results"></div>
+        </div>
+
+        <h4 class="section-title"><i class="fas fa-box-open"></i> Item Manager</h4>
+        <div class="admin-card card-blue">
+            <p style="margin:0 0 10px; color:#555;">Enter <b>Vendor ID</b> to manage their products (Flash Sale / Featured).</p>
+            <div class="search-group">
+                <input type="text" id="product-vendor-id" class="admin-input" placeholder="Enter Vendor ID (e.g. V001)">
+                <button onclick="searchVendorProducts()" class="btn-action btn-search">Load Items</button>
+            </div>
+            <div id="product-results" class="product-grid"></div>
+        </div>
+
+    </div>
+
+    <div id="blogManagerModal" class="modal-overlay">
+        <div class="modal-body">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="margin:0;">📝 Blog Dashboard</h2>
+                <button onclick="document.getElementById('blogManagerModal').style.display='none'" style="border:none; background:none; font-size:24px; cursor:pointer;">&times;</button>
+            </div>
+            <div style="background:#f9f9f9; padding:15px; border-radius:10px; margin-bottom:20px;">
+                <h4 id="blogFormTitle" style="margin-top:0;">Create New Post</h4>
+                <input type="hidden" id="editBlogId">
+                <input type="text" id="blogTitle" class="admin-input" placeholder="Title" style="margin-bottom:10px; width:100%; box-sizing:border-box;">
+                <textarea id="blogSnippet" class="admin-input" placeholder="Snippet" style="margin-bottom:10px; width:100%; box-sizing:border-box; height:60px;"></textarea>
+                <textarea id="blogContent" class="admin-input" placeholder="Content" style="margin-bottom:10px; width:100%; box-sizing:border-box; height:150px;"></textarea>
+                <input type="file" id="blogImageFile" accept="image/*">
+                <div id="uploadStatus" style="display:none; color:blue; font-size:12px;">Uploading...</div>
+                <button onclick="saveBlog()" id="saveBlogBtn" class="btn-action" style="background:#00b894; color:white; margin-top:10px; width:100%;">Publish</button>
+                <button onclick="resetBlogForm()" id="cancelEditBtn" class="btn-action" style="background:#777; color:white; margin-top:5px; width:100%; display:none;">Cancel Edit</button>
+            </div>
+            <div id="admin-blog-list"></div>
+        </div>
+    </div>
+
+    <div id="reviewManagerModal" class="modal-overlay">
+        <div class="modal-body">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="margin:0;">⭐ Review Manager</h2>
+                <button onclick="document.getElementById('reviewManagerModal').style.display='none'" style="border:none; background:none; font-size:24px; cursor:pointer;">&times;</button>
+            </div>
+            <div id="review-modal-list">
+                <p style="text-align:center; color:#777;">Loading reviews...</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, addDoc, updateDoc, deleteDoc, collection, getDocs, getDoc, query, orderBy, where, serverTimestamp } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+            authDomain: "afit-market-auth.firebaseapp.com",
+            projectId: "afit-market-auth",
+            storageBucket: "afit-market-auth.firebasestorage.app",
+            messagingSenderId: "894920886640",
+            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        const ADMIN_EMAIL = "afitdgm@gmail.com"; 
+        const SHEET_ID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+        const API_ROOT = `https://opensheet.elk.sh/${SHEET_ID}`;
+        const IMGBB_KEY = "2ac38bef2c73c5a65e7ddf94efe37962";
+
+        onAuthStateChanged(auth, async (user) => {
+            const loader = document.getElementById('loading');
+            if (user) {
+                if (user.email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim()) {
+                    setTimeout(() => {
+                        loader.style.display = 'none';
+                        document.getElementById('admin-content').style.display = 'block';
+                        loadCurrentAnnouncement();
+                    }, 800);
+                } else { document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px; color:red;'>⛔ ACCESS DENIED</h2>"; }
+            } else { signInWithPopup(auth, provider).catch(() => window.location.href = "index.html"); }
+        });
+
+        // ================= HELPER FOR SHEETS =================
+        function getVal(row, key) {
+            if(!row) return "";
+            if (row[key] !== undefined) return row[key];
+            if (key === 'vendor_id') return row['Vendor_ID'] || row['Vendor ID'];
+            if (key === 'business_name') return row['Business_Name'] || row['Name'];
+            if (key === 'email') return row['Email'];
+            const cleanKey = key.toLowerCase().trim();
+            for (let k in row) {
+                if (k.toLowerCase().trim() === cleanKey) return row[k];
+            }
+            return "";
+        }
+
+        // ================= 3. REVIEW MANAGER (MODAL) =================
+        window.openReviewManager = function() {
+            document.getElementById('reviewManagerModal').style.display = 'block';
+            loadReviewsIntoModal();
+        }
+
+        async function loadReviewsIntoModal() {
+            const list = document.getElementById('review-modal-list');
+            list.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            try {
+                const q = query(collection(db, "reviews"), orderBy("createdAt", "desc"));
+                const snapshot = await getDocs(q);
+                list.innerHTML = "";
+                
+                if (snapshot.empty) { list.innerHTML = "<p>No reviews yet.</p>"; return; }
+
+                snapshot.forEach(doc => {
+                    const r = doc.data();
+                    const isPending = r.status === 'pending';
+                    list.innerHTML += `
+                    <div class="review-card" style="border-left: 5px solid ${isPending ? '#f1c40f' : '#2ecc71'};">
+                        <div style="display:flex; justify-content:space-between;">
+                            <strong>${r.name} (${r.rating}⭐)</strong>
+                            <span class="review-status ${isPending ? 'status-pending' : 'status-approved'}">${r.status || 'live'}</span>
+                        </div>
+                        <p style="font-style:italic; color:#555; margin:5px 0;">"${r.review}"</p>
+                        <div style="text-align:right; margin-top:10px;">
+                            <button onclick="deleteReview('${doc.id}')" class="btn-action" style="background:#e74c3c; color:white; padding:5px 10px;">Delete</button>
+                            ${isPending ? `<button onclick="approveReview('${doc.id}')" class="btn-action" style="background:#2ecc71; color:white; padding:5px 10px;">Approve</button>` : ''}
+                        </div>
+                    </div>`;
+                });
+            } catch (err) { console.error(err); list.innerHTML = "Error loading reviews."; }
+        }
+
+        window.approveReview = async function(id) {
+            if(!confirm("Approve this review?")) return;
+            await updateDoc(doc(db, "reviews", id), { status: "approved" });
+            loadReviewsIntoModal();
+        }
+        window.deleteReview = async function(id) {
+            if(!confirm("Delete this review permanently?")) return;
+            await deleteDoc(doc(db, "reviews", id));
+            loadReviewsIntoModal();
+        }
+
+        // ================= 4. VENDOR MANAGER (SEARCH & DUAL SHEET) =================
+        window.searchVendor = async function() {
+            const queryText = document.getElementById('vendor-search-input').value.toLowerCase().trim();
+            const resultsDiv = document.getElementById('vendor-results');
+            
+            if(!queryText) { alert("Enter a name, ID, or email."); return; }
+            
+            resultsDiv.innerHTML = '<p>Searching both databases...</p>';
+
+            try {
+                // 1. Fetch Both Sheets
+                const [v1, v2] = await Promise.all([
+                    fetch(`${API_ROOT}/Vendors`).then(res => res.json().catch(()=>[])),
+                    fetch(`${API_ROOT}/Vendors_v2`).then(res => res.json().catch(()=>[]))
+                ]);
+                const allVendors = [...(Array.isArray(v1)?v1:[]), ...(Array.isArray(v2)?v2:[])];
+
+                // 2. Filter Results
+                const matches = allVendors.filter(v => {
+                    const vid = String(getVal(v, 'vendor_id')).toLowerCase();
+                    const name = String(getVal(v, 'business_name')).toLowerCase();
+                    const email = String(getVal(v, 'email')).toLowerCase();
+                    return vid.includes(queryText) || name.includes(queryText) || email.includes(queryText);
+                });
+
+                if(matches.length === 0) {
+                    resultsDiv.innerHTML = '<p style="color:red;">No vendor found.</p>';
+                    return;
+                }
+
+                // 3. Get Suspension Status from Firestore
+                const statusSnapshot = await getDocs(collection(db, "vendor_status"));
+                const statusMap = {};
+                statusSnapshot.forEach(doc => { statusMap[doc.id] = doc.data().status; });
+
+                // 4. Render
+                resultsDiv.innerHTML = "";
+                matches.forEach(v => {
+                    const vid = getVal(v, 'vendor_id');
+                    const name = getVal(v, 'business_name');
+                    const isSuspended = statusMap[vid] === "suspended";
+
+                    resultsDiv.innerHTML += `
+                    <div class="result-item" style="border-left: 5px solid ${isSuspended ? '#e74c3c' : '#2ecc71'}">
+                        <div class="result-info">
+                            <h4>${name} <span style="font-size:12px; color:#999;">(${vid})</span></h4>
+                            <p>${getVal(v, 'email')}</p>
+                        </div>
+                        <button onclick="toggleSuspend('${vid}', ${isSuspended}, '${name}')" 
+                            class="btn-action" style="background:${isSuspended ? '#2ecc71' : '#ffecec'}; color:${isSuspended ? 'white' : 'red'}; border:1px solid red;">
+                            ${isSuspended ? 'Unsuspend' : 'Suspend'}
+                        </button>
+                    </div>`;
+                });
+
+            } catch(e) {
+                console.error(e);
+                resultsDiv.innerHTML = '<p style="color:red;">Network Error.</p>';
+            }
+        }
+
+        window.toggleSuspend = async function(vid, currentlySuspended, vName) {
+            const newStatus = currentlySuspended ? "active" : "suspended";
+            if(!confirm(`Change ${vName} to ${newStatus}?`)) return;
+            await setDoc(doc(db, "vendor_status", vid), { status: newStatus }, { merge: true });
+            searchVendor(); // Refresh results
+        };
+
+        // ================= 5. ITEM MANAGER (VENDOR ID SEARCH) =================
+        window.searchVendorProducts = async function() {
+            const vid = document.getElementById('product-vendor-id').value.trim();
+            const grid = document.getElementById('product-results');
+
+            if(!vid) { alert("Enter a Vendor ID"); return; }
+
+            grid.innerHTML = "<p>Loading items form Database...</p>";
+
+            try {
+                // Query Firestore for products where vendor_id matches input
+                const q = query(collection(db, "products"), where("vendor_id", "==", vid));
+                const snapshot = await getDocs(q);
+
+                grid.innerHTML = "";
+                if(snapshot.empty) {
+                    grid.innerHTML = `<p style="grid-column:1/-1; text-align:center;">No products found for Vendor ID: <b>${vid}</b></p>`;
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const item = doc.data();
+                    const isStory = item.is_story === "true";
+                    const isFeatured = item.is_featured === "true";
+                    const img = item.image.startsWith('http') ? item.image : `img/${item.image}`;
+
+                    grid.innerHTML += `
+                    <div class="p-card">
+                        <img src="${img}" class="p-img" onerror="this.src='img/logo-blue.png'">
+                        <div style="font-weight:bold; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</div>
+                        <div style="font-size:12px; color:#777;">${item.price}</div>
+                        <div class="p-controls">
+                            <button class="btn-star ${isFeatured ? 'active' : ''}" onclick="toggleFeatured('${doc.id}', ${isFeatured}, '${vid}')" title="Feature on Home">
+                                <i class="fas fa-star"></i>
+                            </button>
+                            <div style="display:flex; align-items:center; gap:5px;">
+                                <span style="font-size:10px;">FLASH</span>
+                                <label class="switch">
+                                    <input type="checkbox" ${isStory ? 'checked' : ''} onchange="toggleStory('${doc.id}', this)">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+
+            } catch(e) {
+                console.error(e);
+                grid.innerHTML = "<p>Error loading items.</p>";
+            }
+        }
+
+        window.toggleStory = async function(docID, checkbox) {
+            try { await updateDoc(doc(db, "products", docID), { is_story: checkbox.checked ? "true" : "false" }); }
+            catch (e) { alert("Error updating status."); checkbox.checked = !checkbox.checked; }
+        };
+
+        window.toggleFeatured = async function(docID, currentStatus, vid) {
+            try { 
+                await updateDoc(doc(db, "products", docID), { is_featured: (!currentStatus) ? "true" : "false" });
+                // We pass 'vid' back to the search function to refresh the exact same list
+                // To do this simply, we re-trigger the search button click or call logic logic again
+                // For smoother UX, we just toggle the class visually if success, but reloading ensures sync
+                document.getElementById('product-vendor-id').value = vid;
+                searchVendorProducts(); 
+            } catch(e) { alert("Error updating status."); }
+        };
+
+        // ================= GLOBAL ANNOUNCEMENT =================
+        async function loadCurrentAnnouncement() {
+            try {
+                const docSnap = await getDoc(doc(db, "settings", "global_alert"));
+                if (docSnap.exists() && docSnap.data().active) {
+                    document.getElementById('announce-input').value = docSnap.data().message;
+                }
+            } catch(e) { console.error(e); }
+        }
+        window.postAnnouncement = async function() {
+            const msg = document.getElementById('announce-input').value;
+            if(!msg) return alert("Type a message.");
+            await setDoc(doc(db, "settings", "global_alert"), { message: msg, active: true, timestamp: new Date() });
+            alert("Live!");
+        };
+        window.clearAnnouncement = async function() {
+            await setDoc(doc(db, "settings", "global_alert"), { active: false }, { merge: true });
+            document.getElementById('announce-input').value = "";
+            alert("Cleared.");
+        };
+
+        // ================= BLOG MANAGER (KEPT SAME) =================
+        window.openBlogManager = function() {
+            document.getElementById('blogManagerModal').style.display = 'block';
+            loadAdminBlogs();
+        }
+        window.loadAdminBlogs = async function() {
+            const list = document.getElementById('admin-blog-list');
+            list.innerHTML = "<p>Loading...</p>";
+            try {
+                const q = query(collection(db, "blogs"), orderBy("timestamp", "desc"));
+                const snapshot = await getDocs(q);
+                list.innerHTML = "";
+                snapshot.forEach(doc => {
+                    const b = doc.data();
+                    list.innerHTML += `
+                    <div style="background:white; padding:15px; border-radius:8px; border:1px solid #eee; display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+                        <img src="${b.image}" style="width:50px; height:50px; object-fit:cover; border-radius:5px;" onerror="this.src='img/logo-blue.png'">
+                        <div style="flex:1;">
+                            <div style="font-weight:bold; font-size:14px;">${b.title}</div>
+                            <div style="font-size:11px; color:#777;">${b.timestamp ? new Date(b.timestamp.seconds * 1000).toLocaleDateString() : 'N/A'}</div>
+                        </div>
+                        <button onclick="editBlog('${doc.id}')" style="background:#ffeaa7; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">✏️</button>
+                        <button onclick="deleteBlog('${doc.id}')" style="background:#ff7675; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">🗑️</button>
+                    </div>`;
+                });
+            } catch(e) { console.error(e); }
+        }
+        
+        // ... (Keep existing Blog Save/Edit/Delete functions from previous code if needed, they are standard) ...
+        window.saveBlog = async function() {
+            const btn = document.getElementById('saveBlogBtn');
+            const fileInput = document.getElementById('blogImageFile');
+            const title = document.getElementById('blogTitle').value;
+            const snippet = document.getElementById('blogSnippet').value;
+            const content = document.getElementById('blogContent').value;
+            const editId = document.getElementById('editBlogId').value;
+
+            if(!title || !content) return alert("Title and Content are required");
+
+            btn.innerText = "Processing...";
+            btn.disabled = true;
+
+            let imageUrl = null;
+            if(fileInput.files.length > 0) {
+                document.getElementById('uploadStatus').style.display = 'block';
+                const formData = new FormData();
+                formData.append("image", fileInput.files[0]);
+                try {
+                    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
+                    const data = await res.json();
+                    if(data.success) imageUrl = data.data.url;
+                } catch(e) { console.error(e); }
+            }
+
+            const blogData = { title, snippet, content, searchKeywords: title.toLowerCase().split(" "), timestamp: serverTimestamp() };
+            if(imageUrl) blogData.image = imageUrl;
+            if(!editId && !imageUrl) blogData.image = "https://afitdgm.store/img/logo-blue.png";
+            if(!editId) blogData.likes = [];
+
+            try {
+                if(editId) { await updateDoc(doc(db, "blogs", editId), blogData); alert("Updated!"); }
+                else { await addDoc(collection(db, "blogs"), blogData); alert("Published!"); }
+                resetBlogForm();
+                loadAdminBlogs();
+            } catch(e) { alert("Error."); }
+            btn.innerText = "Publish"; btn.disabled = false;
+        }
+
+        window.editBlog = async function(id) {
+            const docSnap = await getDoc(doc(db, "blogs", id));
+            if(docSnap.exists()) {
+                const data = docSnap.data();
+                document.getElementById('blogTitle').value = data.title;
+                document.getElementById('blogSnippet').value = data.snippet;
+                document.getElementById('blogContent').value = data.content;
+                document.getElementById('editBlogId').value = id;
+                document.getElementById('blogFormTitle').innerText = "Edit Post";
+                document.getElementById('saveBlogBtn').innerText = "Update Post";
+                document.getElementById('cancelEditBtn').style.display = 'block';
+            }
+        }
+        window.deleteBlog = async function(id) {
+            if(confirm("Delete post?")) { await deleteDoc(doc(db, "blogs", id)); loadAdminBlogs(); }
+        }
+        window.resetBlogForm = function() {
+            document.getElementById('blogTitle').value = "";
+            document.getElementById('blogSnippet').value = "";
+            document.getElementById('blogContent').value = "";
+            document.getElementById('editBlogId').value = "";
+            document.getElementById('blogFormTitle').innerText = "Create New Post";
+            document.getElementById('saveBlogBtn').innerText = "Publish Post";
+            document.getElementById('cancelEditBtn').style.display = 'none';
+        }
+
+    </script>
+</body>
+</html>

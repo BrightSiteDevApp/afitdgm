@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    
+    <title>Campus Gist & News | AFIT Digital Market</title>
+    
+    <meta property="og:title" content="Campus Gist & News | AFIT Digital Market">
+    <meta property="og:description" content="Stay updated with the latest Exams, Gossip, and Important Notices from AFIT.">
+    <meta property="og:image" content="https://afitdgm.store/img/app-logo.png"> 
+    <meta property="og:url" content="https://afitdgm.store/blogs/">
+    <meta property="og:type" content="website">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../asset/style.css">
+    
+    <link rel="icon" href="../img/app-logo.png" type="image/png" sizes="192x192">
+    
+    <style>
+        body { background-color: #f8f9fa; }
+        
+        .blog-header-modern {
+            padding: 20px;
+            background: white;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        /* Modern Blog Card */
+        .modern-blog-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            border: 1px solid #f0f0f0;
+        }
+        .modern-blog-card:active { transform: scale(0.98); }
+        
+        .blog-cover {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .blog-content-box { padding: 15px; }
+        
+        .blog-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .modern-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #2d3436;
+            margin: 0 0 8px 0;
+            line-height: 1.4;
+        }
+        
+        .modern-snippet {
+            font-size: 13px;
+            color: #636e72;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #f5f5f5;
+        }
+
+        .like-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f5f6fa;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .like-pill.active {
+            background: #ffeaa7;
+            color: #d63031;
+        }
+        .like-pill i { font-size: 14px; }
+        .like-count { font-size: 12px; font-weight: bold; }
+
+        .share-icon {
+            font-size: 16px;
+            color: #2d8eff;
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        /* --- 🔴 UPDATED MODAL TEXT STYLES --- */
+        .modal-text {
+            white-space: pre-wrap; 
+            font-family: 'Segoe UI', sans-serif;
+            line-height: 1.8;
+            color: #2d3436;
+            font-size: 15px;
+            margin-top: 20px;
+            
+            /* These lines fix the horizontal scrolling issue */
+            word-wrap: break-word;       
+            overflow-wrap: break-word;   
+            word-break: break-word;      
+            max-width: 100%;             
+        }
+        
+        /* Style for the clickable links */
+        .modal-text a {
+            color: #2d8eff;
+            text-decoration: underline;
+            font-weight: 600;
+            word-break: break-all; /* Ensures really long URLs break */
+        }
+
+        .blog-modal-content { border-radius: 20px; }
+
+        /* Dark Mode */
+        body.dark-mode { background: #121212; }
+        
+        /* ✅ FIXED: Header Dark Mode */
+        body.dark-mode .blog-header-modern { 
+            background: #1e1e1e; 
+            border-bottom: 1px solid #333; 
+        }
+        body.dark-mode .blog-header-modern p { color: #aaa !important; }
+
+        body.dark-mode .modern-blog-card { background: #1e1e1e; border-color: #333; }
+        body.dark-mode .modern-title { color: #dfe6e9; }
+        body.dark-mode .modern-snippet { color: #b2bec3; }
+        body.dark-mode .like-pill { background: #2d3436; color: #dfe6e9; }
+        body.dark-mode .like-pill.active { background: #d63031; color: white; }
+        
+        /* Modal Dark Mode */
+        body.dark-mode .blog-modal-content { background: #1e1e1e; color: white; }
+        body.dark-mode .modal-title { color: white; }
+        body.dark-mode .modal-text { color: #ddd; }
+        body.dark-mode .modal-text a { color: #74b9ff; } /* Lighter blue for dark mode */
+        
+        /* Footer Dark Mode */
+        body.dark-mode .site-footer { background: #1e1e1e; border-top: 1px solid #333; }
+    </style>
+</head>
+<body>
+
+<div id="preloader">
+    <div class="loader-content">
+        <img src="../img/logo-blue.png" alt="Loading..." class="loader-logo">
+        <div class="loading-bar"></div>
+    </div>
+</div>
+
+<div class="app-container">
+    
+    <div class="header">
+        <a href="../index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <span style="font-weight:bold;">Campus Gist</span>
+        <div class="notification-icon-box" id="theme-toggle" style="margin-left:auto;">
+            <i class="fas fa-moon"></i>
+        </div>
+    </div>
+
+    <div class="blog-header-modern">
+        <h2 style="margin:0; font-size: 22px; color: #2d8eff;">AFIT Updates</h2>
+        <p style="font-size:13px; margin-top:5px; color:#777;">Latest news, gossip, and events.</p>
+    </div>
+
+    <div class="blog-list" id="blog-container" style="padding: 0 15px;">
+        </div>
+
+    <div id="no-posts-msg" style="text-align: center; margin-top: 60px; color: #999; display:none;">
+        <i class="fas fa-newspaper" style="font-size: 50px; margin-bottom: 15px; opacity: 0.3;"></i>
+        <h3 style="font-size: 16px; color: #555;">No Updates Yet</h3>
+    </div>
+    
+    <footer class="site-footer" style="margin-top: 40px; text-align: center; padding: 20px; color: #777; font-size: 12px;">
+        <p style="margin-top:20px; color:#777; font-size: 12px;">
+    &copy; 2026 All rights reserved. Powered by 
+    <a href="https://brightsitedev.tech" target="_blank" style="color:#2d8eff; text-decoration:none; font-weight:bold;">Brightsitedev</a>
+</p>
+    </footer>
+
+</div>
+
+<div id="blogModal" class="blog-modal" onclick="closeBlog(event)">
+    <div class="blog-modal-content" onclick="event.stopPropagation()">
+        <div class="close-blog-btn" onclick="closeBlogForce()"><i class="fas fa-times"></i></div>
+        <img id="modalImg" src="" class="modal-hero-img" onerror="this.src='../img/logo-blue.png'">
+        <div class="modal-body">
+            <h3 id="modalTitle" class="modal-title"></h3>
+            <span id="modalDate" class="modal-date" style="font-size:12px; color:#888;"></span>
+            
+            <div id="modalText" class="modal-text"></div>
+            
+            <div class="modal-btn-box" style="margin-top:30px;">
+                <button id="shareBtn" class="chat-btn" style="background: #25D366; width:100%;">
+                    Share on WhatsApp <i class="fab fa-whatsapp"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../asset/script.js"></script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, arrayUnion, arrayRemove, query, orderBy } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+        authDomain: "afit-market-auth.firebaseapp.com",
+        projectId: "afit-market-auth",
+        storageBucket: "afit-market-auth.firebasestorage.app",
+        messagingSenderId: "894920886640",
+        appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    let currentUser = null;
+
+    onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        loadBlogs(); // Reload to update "Liked" status visual
+    });
+
+    async function loadBlogs() {
+        const container = document.getElementById('blog-container');
+        const noMsg = document.getElementById('no-posts-msg');
+        const preloader = document.getElementById('preloader');
+
+        try {
+            const q = query(collection(db, "blogs"), orderBy("timestamp", "desc"));
+            const snapshot = await getDocs(q);
+
+            container.innerHTML = "";
+            if(snapshot.empty) {
+                noMsg.style.display = 'block';
+            } else {
+                noMsg.style.display = 'none';
+                snapshot.forEach(doc => {
+                    const b = doc.data();
+                    const bId = doc.id;
+                    const date = b.timestamp ? new Date(b.timestamp.seconds * 1000).toLocaleDateString() : "Recent";
+                    const likes = b.likes || [];
+                    const likeCount = likes.length;
+                    
+                    const isLiked = currentUser && likes.includes(currentUser.uid);
+                    const likeClass = isLiked ? 'active' : '';
+                    const heartIcon = isLiked ? 'fas fa-heart' : 'far fa-heart';
+
+                    // Prepare Safe Strings
+                    const safeTitle = b.title.replace(/'/g, "\\'");
+                    const safeContent = b.content.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '<br>');
+
+                    const div = document.createElement('div');
+                    div.className = "modern-blog-card";
+                    div.innerHTML = `
+                        <img src="${b.image}" class="blog-cover" onclick="openBlog('${safeTitle}', '${date}', '${b.image}', '${safeContent}')">
+                        <div class="blog-content-box">
+                            <div class="blog-meta">
+                                <span>${date}</span>
+                                <span>NEWS</span>
+                            </div>
+                            <h3 class="modern-title" onclick="openBlog('${safeTitle}', '${date}', '${b.image}', '${safeContent}')">${b.title}</h3>
+                            <div class="modern-snippet" onclick="openBlog('${safeTitle}', '${date}', '${b.image}', '${safeContent}')">${b.snippet}</div>
+                            
+                            <div class="action-row">
+                                <div class="like-pill ${likeClass}" onclick="toggleLike('${bId}')">
+                                    <i class="${heartIcon}"></i>
+                                    <span class="like-count" id="count-${bId}">${likeCount}</span>
+                                </div>
+                                <i class="fas fa-share-alt share-icon" onclick="performShare('${safeTitle}', '${b.snippet}')"></i>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            if(preloader) preloader.style.display = 'none';
+        }
+    }
+
+    // --- LIKE LOGIC ---
+    window.toggleLike = async function(blogId) {
+        if (!currentUser) {
+            if(confirm("Sign in with Google to like posts?")) {
+                signInWithPopup(auth, provider).then(() => {
+                    alert("Signed in! You can now like posts.");
+                });
+            }
+            return;
+        }
+
+        const countSpan = document.getElementById(`count-${blogId}`);
+        const pill = countSpan.parentElement;
+        const icon = pill.querySelector('i');
+        
+        let currentCount = parseInt(countSpan.innerText);
+        const isLiking = !pill.classList.contains('active'); 
+
+        // Optimistic UI Update
+        if (isLiking) {
+            pill.classList.add('active');
+            icon.className = 'fas fa-heart';
+            countSpan.innerText = currentCount + 1;
+        } else {
+            pill.classList.remove('active');
+            icon.className = 'far fa-heart';
+            countSpan.innerText = Math.max(0, currentCount - 1);
+        }
+
+        // DB Update
+        const blogRef = doc(db, "blogs", blogId);
+        try {
+            if (isLiking) {
+                await updateDoc(blogRef, { likes: arrayUnion(currentUser.uid) });
+            } else {
+                await updateDoc(blogRef, { likes: arrayRemove(currentUser.uid) });
+            }
+        } catch(e) { console.error("Like error:", e); }
+    }
+
+    // --- SHARE LOGIC ---
+    window.performShare = function(title, snippet) {
+        const url = window.location.href;
+        const text = `*${title}*\n${snippet}\n\nRead more on AFIT Market:\n${url}`;
+        
+        if (navigator.share) {
+            navigator.share({ title: "AFIT News", text: text, url: url }).catch(console.error);
+        } else {
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        }
+    }
+
+    // --- 🔴 MODAL LOGIC WITH AUTO-LINKING ---
+    window.openBlog = function(title, date, img, content) {
+        document.getElementById('modalImg').src = img;
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalDate').innerText = date;
+        
+        // 1. Convert URLs to clickable Links
+        // This Regex finds http/https links and wraps them in <a> tags
+        const linkifiedContent = content.replace(
+            /(https?:\/\/[^\s<]+)/g, 
+            '<a href="$1" target="_blank">$1</a>'
+        );
+
+        // 2. Insert into Modal
+        document.getElementById('modalText').innerHTML = linkifiedContent; 
+        
+        const shareBtn = document.getElementById('shareBtn');
+        shareBtn.onclick = function() { performShare(title, content.replace(/<br>/g, "\n")); };
+
+        document.getElementById('blogModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden'; 
+    }
+
+    window.closeBlogForce = function() {
+        document.getElementById('blogModal').style.display = 'none';
+        document.body.style.overflow = 'auto'; 
+    }
+    
+    window.closeBlog = function(event) {
+        if (event.target.id === 'blogModal') closeBlogForce();
+    }
+</script>
+</body>
+</html>

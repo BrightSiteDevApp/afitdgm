@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - AFIT Digital Market</title>
+    <link rel="stylesheet" href="asset/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="img/app-logo.png">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <style>
+        .profile-card {
+            background: white;
+            padding: 30px 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .profile-img-large {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #f0f0f0;
+            margin-bottom: 10px;
+        }
+        
+        .account-option {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            text-decoration: none;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            transition: transform 0.2s;
+            border: 1px solid transparent;
+        }
+        .account-option:active { transform: scale(0.98); }
+        
+        .option-icon {
+            width: 40px; height: 40px;
+            background: #f5f7fa;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: #555;
+            font-size: 18px;
+        }
+        .option-text { flex: 1; font-size: 14px; font-weight: 600; }
+        
+        /* Dark Mode */
+        body.dark-mode .profile-card, body.dark-mode .account-option { background: #222; color: white; }
+        body.dark-mode .option-icon { background: #333; color: #ccc; }
+    </style>
+</head>
+<body data-page="account">
+
+    <script>
+        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+    </script>
+
+    <div class="app-container">
+        <div class="header">
+            <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+            <span style="font-weight:bold;">My Account</span>
+            <div style="width:30px;"></div>
+        </div>
+
+        <div id="account-loader" style="text-align:center; padding:100px 20px;">
+            <i class="fas fa-circle-notch fa-spin" style="font-size:30px; color:#2d8eff;"></i>
+            <p style="color:#777; font-size:12px; margin-top:15px;">Loading profile...</p>
+        </div>
+
+        <div id="account-content" style="padding: 15px; display: none;">
+            
+            <div class="profile-card">
+                <img src="img/person.png" id="user-img" class="profile-img-large" onerror="this.src='img/person.png'">
+                <h3 id="user-name" style="margin:0; font-size:20px;">Student</h3>
+                <p id="user-email" style="margin:5px 0 0; color:#777; font-size:13px;">...</p>
+            </div>
+
+            <div style="margin-top: 30px;">
+                
+                <a href="admin.html" id="btn-admin" class="account-option" style="display: none; background: #f3e5f5; border-color: #9c27b0;">
+                    <div class="option-icon" style="background: #9c27b0; color: white;"><i class="fas fa-user-shield"></i></div>
+                    <div class="option-text" style="color: #9c27b0;">Super Admin Panel</div>
+                    <i class="fas fa-chevron-right" style="color: #9c27b0;"></i>
+                </a>
+
+                <a href="dashboard.html" id="btn-dashboard" class="account-option" style="display: none; background: #eef7ff; border-color: #2d8eff;">
+                    <div class="option-icon" style="background: #2d8eff; color: white;"><i class="fas fa-store"></i></div>
+                    <div class="option-text" style="color: #2d8eff;">Open Vendor Dashboard</div>
+                    <i class="fas fa-chevron-right" style="color: #2d8eff;"></i>
+                </a>
+
+                <a href="saved.html" class="account-option">
+                    <div class="option-icon"><i class="far fa-heart"></i></div>
+                    <div class="option-text">Saved Items</div>
+                    <i class="fas fa-chevron-right" style="color:#ccc;"></i>
+                </a>
+
+                <a href="requests.html" class="account-option">
+                    <div class="option-icon"><i class="fas fa-bullhorn"></i></div>
+                    <div class="option-text">My Requests</div>
+                    <i class="fas fa-chevron-right" style="color:#ccc;"></i>
+                </a>
+
+                <a href="https://wa.me/2349153375488?text=I%20need%20help%20with..." class="account-option">
+                    <div class="option-icon"><i class="fas fa-headset"></i></div>
+                    <div class="option-text">Contact Support</div>
+                    <i class="fas fa-chevron-right" style="color:#ccc;"></i>
+                </a>
+
+                <a href="#" onclick="handleLogout()" class="account-option" style="margin-top: 30px; background: #fff5f6;">
+                    <div class="option-icon" style="background: #ff4757; color: white;"><i class="fas fa-sign-out-alt"></i></div>
+                    <div class="option-text" style="color: #ff4757;">Log Out</div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="asset/script.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+            authDomain: "afit-market-auth.firebaseapp.com",
+            projectId: "afit-market-auth",
+            storageBucket: "afit-market-auth.firebasestorage.app",
+            messagingSenderId: "894920886640",
+            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+        const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
+        
+        // 🔒 ADMIN EMAIL
+        const ADMIN_EMAIL = "afitdgm@gmail.com";
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // 1. Set Info
+                document.getElementById('user-name').innerText = user.displayName || "Student";
+                document.getElementById('user-email').innerText = user.email;
+                document.getElementById('user-img').src = user.photoURL || "img/person.png";
+
+                // 2. CHECK ROLE
+                const email = user.email.toLowerCase().trim();
+
+                if (email === ADMIN_EMAIL) {
+                    // ✅ IS ADMIN -> Show Admin Button
+                    document.getElementById('btn-admin').style.display = "flex";
+                } 
+                
+                // 🏪 Check if Vendor (Admin can also be vendor)
+                await checkIfVendor(email);
+
+                // 3. Show Page
+                document.getElementById('account-loader').style.display = 'none';
+                document.getElementById('account-content').style.display = 'block';
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        async function checkIfVendor(email) {
+            try {
+                // Fetch BOTH sheets
+                const [v1, v2] = await Promise.all([
+                    fetch(`${apiRoot}/Vendors`).then(res => res.json()),
+                    fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => []))
+                ]);
+
+                // Merge lists
+                const allVendors = [...v1, ...v2];
+
+                // Check if email exists in either list
+                const isVendor = allVendors.some(v => v.Email && v.Email.toLowerCase().trim() === email);
+
+                if (isVendor) {
+                    document.getElementById('btn-dashboard').style.display = "flex";
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        window.handleLogout = () => {
+            if(confirm("Log out now?")) signOut(auth).then(() => window.location.href = "index.html");
+        };
+    </script>
+</body>
+</html>

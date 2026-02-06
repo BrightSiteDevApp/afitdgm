@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Lookup - AFIT Digital Market</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="../img/app-logo.png" type="image/png">
+    
+    <style>
+        :root {
+            --primary: #2d8eff;
+            --bg: #f4f7f6;
+            --card: #ffffff;
+            --text: #1c1e21;
+            --text-sec: #65676b;
+            --shadow: 0 4px 20px rgba(0,0,0,0.08);
+            
+            /* Plan Colors */
+            --gold: #f1c40f;
+            --blue: #2d8eff;
+            --grey: #95a5a6;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* MODERN HEADER (Perfectly Centered) */
+        .header {
+            width: 100%;
+            background: var(--card);
+            height: 60px;
+            padding: 0 15px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+            box-sizing: border-box;
+        }
+
+        /* 3-Column Layout for Center Alignment */
+        .header-left { width: 40px; display: flex; align-items: center; }
+        .header-center { display: flex; align-items: center; gap: 8px; justify-content: center; flex: 1; }
+        .header-right { width: 40px; } /* Empty spacer to balance layout */
+
+        .btn-back {
+            color: var(--text); font-size: 18px; text-decoration: none;
+            width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; background: #f0f2f5; transition: 0.2s;
+        }
+        .btn-back:active { background: #e4e6eb; }
+        
+        .app-logo { height: 28px; width: auto; }
+        .header-title { font-weight: 700; font-size: 16px; color: var(--text); white-space: nowrap; }
+
+        /* SEARCH SECTION */
+        .search-wrapper {
+            width: 100%; 
+            padding: 0 20px;
+            box-sizing: border-box;
+            max-width: 500px;
+            margin-top: 20px;
+            z-index: 50;
+        }
+
+        .search-box {
+            background: var(--card);
+            padding: 5px 5px 5px 15px; /* Less padding right for button */
+            border-radius: 50px; 
+            box-shadow: var(--shadow);
+            display: flex; align-items: center; gap: 10px;
+            border: 1px solid rgba(0,0,0,0.05);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        select {
+            padding: 10px 5px; border: none; background: transparent;
+            font-weight: 600; cursor: pointer; color: var(--text-sec);
+            font-size: 13px; outline: none;
+        }
+
+        /* Separator Line */
+        .divider { width: 1px; height: 20px; background: #eee; }
+
+        input {
+            flex: 1; 
+            min-width: 0; /* 🔴 CRITICAL FIX: Prevents overflow on mobile */
+            border: none; outline: none; font-size: 14px;
+            background: transparent; color: var(--text);
+            padding: 10px 0;
+        }
+
+        .btn-search {
+            width: 42px; height: 42px; border-radius: 50%;
+            background: var(--primary); color: white; border: none;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 16px; flex-shrink: 0; /* Prevents button from squishing */
+            box-shadow: 0 2px 8px rgba(45, 142, 255, 0.3);
+        }
+        .btn-search:active { transform: scale(0.95); }
+        .btn-search:disabled { background: #ccc; box-shadow: none; }
+
+        /* VENDOR CARD */
+        .vendor-card {
+            display: none;
+            width: 90%; max-width: 400px;
+            background: var(--card);
+            border-radius: 24px;
+            margin-top: 25px;
+            margin-bottom: 50px;
+            padding-bottom: 25px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            text-align: center;
+            position: relative;
+            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .card-header-bg {
+            height: 100px;
+            background: linear-gradient(135deg, var(--primary), #a29bfe);
+        }
+
+        .profile-wrapper {
+            width: 100px; height: 100px;
+            background: var(--card);
+            border-radius: 50%;
+            padding: 4px;
+            margin: -50px auto 10px auto;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .profile-img { 
+            width: 100%; height: 100%; border-radius: 50%; object-fit: cover; 
+            border: 1px solid #f0f0f0; background: #fff;
+        }
+
+        .v-name { font-size: 20px; font-weight: 800; color: #333; margin: 0; padding: 0 15px; }
+        
+        /* PLAN BADGES */
+        .plan-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 12px; border-radius: 20px;
+            font-size: 11px; font-weight: 700;
+            margin: 8px 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .plan-exec { background: linear-gradient(45deg, #f1c40f, #f39c12); color: white; }
+        .plan-prof { background: linear-gradient(45deg, #2d8eff, #2980b9); color: white; }
+        .plan-essen { background: #ecf0f1; color: #7f8c8d; border: 1px solid #bdc3c7; }
+
+        .v-desc { 
+            color: var(--text-sec); font-size: 13px; line-height: 1.5; 
+            padding: 0 20px; margin: 12px 0;
+        }
+
+        /* STATS GRID */
+        .stats-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 10px; padding: 0 20px; margin-top: 20px;
+            text-align: left;
+        }
+        .stat-box {
+            background: #f8f9fa; padding: 12px; border-radius: 12px;
+            border: 1px solid #eee;
+        }
+        .stat-full { grid-column: span 2; }
+
+        .stat-label { font-size: 10px; color: #aaa; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-val { font-size: 13px; font-weight: 600; color: #333; margin-top: 4px; line-height: 1.3; }
+
+        /* SOCIALS */
+        .socials { display: flex; justify-content: center; gap: 15px; margin-top: 25px; }
+        .s-link {
+            width: 42px; height: 42px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 20px; text-decoration: none;
+            transition: transform 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        .s-link:hover { transform: translateY(-3px); }
+        .wa { background: #25D366; }
+        .ig { background: linear-gradient(45deg, #405DE6, #E1306C, #F77737); }
+        .em { background: #EA4335; }
+
+        .msg-box { display: none; text-align: center; margin-top: 50px; color: var(--text-sec); }
+
+        /* Animation for Placeholder */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="header-left">
+            <a href="/" class="btn-back"><i class="fas fa-chevron-left"></i></a>
+        </div>
+        <div class="header-center">
+            <img src="../img/app-logo.png" alt="Logo" class="app-logo" onerror="this.style.display='none'">
+            <span class="header-title">Vendor Info</span>
+        </div>
+        <div class="header-right"></div> </div>
+
+    <div class="search-wrapper">
+        <div class="search-box">
+            <select id="search-type">
+                <option value="id">ID</option>
+                <option value="email">Email</option>
+            </select>
+            <div class="divider"></div>
+            <input type="text" id="search-input" placeholder="Enter Vendor ID (e.g. V001)" enterkeyhint="search">
+            <button class="btn-search" onclick="performSearch()" id="search-btn">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="initial-state" class="msg-box" style="display: block; margin-top: 80px; animation: fadeIn 0.5s;">
+        <i class="fas fa-store-alt" style="font-size: 60px; color: #e4e6eb; margin-bottom: 20px;"></i>
+        <h3 style="color: #bdc3c7; margin: 0; font-size: 18px; font-weight: 600;">Search Vendor</h3>
+        <p style="color: #dcdcdc; font-size: 13px; margin-top: 8px;">Enter an ID or email to view details</p>
+    </div>
+
+    <div id="loader" class="msg-box">
+        <i class="fas fa-circle-notch fa-spin" style="font-size: 30px; color: var(--primary);"></i>
+        <p style="font-size: 13px; margin-top: 10px;">Searching Database...</p>
+    </div>
+
+    <div id="error-box" class="msg-box">
+        <i class="fas fa-search" style="font-size: 40px; color: #ddd; margin-bottom: 10px;"></i>
+        <p>No vendor found with that info.</p>
+    </div>
+
+    <div id="vendor-result" class="vendor-card">
+        <div class="card-header-bg"></div>
+        
+        <div class="profile-wrapper">
+            <img src="../img/default-shop.png" id="v-img" class="profile-img" onerror="this.src='https://via.placeholder.com/100?text=Shop'">
+        </div>
+
+        <h2 class="v-name" id="v-name">---</h2>
+        <div id="plan-badge-container"></div>
+        <p class="v-desc" id="v-desc">---</p>
+
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-label">Vendor ID</div>
+                <div class="stat-val" id="v-id-disp">---</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Location</div>
+                <div class="stat-val" id="v-loc">---</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Working Hours</div>
+                <div class="stat-val" id="v-time">---</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Joined</div>
+                <div class="stat-val" id="v-joined">---</div>
+            </div>
+            <div class="stat-box stat-full">
+                <div class="stat-label">Services / Categories</div>
+                <div class="stat-val" id="v-cat" style="color: var(--primary);">---</div>
+            </div>
+        </div>
+
+        <div class="socials">
+            <a href="#" id="link-wa" class="s-link wa"><i class="fab fa-whatsapp"></i></a>
+            <a href="#" id="link-ig" class="s-link ig"><i class="fab fa-instagram"></i></a>
+            <a href="#" id="link-em" class="s-link em"><i class="fas fa-envelope"></i></a>
+        </div>
+        
+        <p style="margin-top:20px; margin-bottom: 0; color:#999; font-size: 11px;">
+            &copy; 2026 Powered by 
+            <a href="https://brightsitedev.tech" target="_blank" style="color:#2d8eff; text-decoration:none; font-weight:bold;">Brightsitedev</a>
+        </p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+            authDomain: "afit-market-auth.firebaseapp.com",
+            projectId: "afit-market-auth",
+            storageBucket: "afit-market-auth.firebasestorage.app",
+            messagingSenderId: "894920886640",
+            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        const SHEET_ID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+        const API_ROOT = `https://opensheet.elk.sh/${SHEET_ID}`;
+
+        function getVal(row, key) {
+            if(!row) return "";
+            if (row[key] !== undefined) return row[key];
+            if (key === 'vendor_id') return row['Vendor_ID'] || row['Vendor ID'];
+            if (key === 'business_name') return row['Business_Name'] || row['Name'];
+            if (key === 'description') return row['Description'];
+            if (key === 'verified') return row['Verified'];
+            if (key === 'image') return row['Image'];
+            if (key === 'whatsapp') return row['Whatsapp'];
+            if (key === 'instagram') return row['Instagram'];
+            if (key === 'location') return row['Location'];
+            if (key === 'date_joined') return row['Date_Joined'];
+            if (key === 'open_time') return row['Open_Time'];
+            if (key === 'close_time') return row['Close_Time'];
+            if (key === 'online_247') return row['Online_247'];
+            if (key === 'Category') return row['Category'];
+
+            const cleanKey = key.toLowerCase().trim();
+            for (let k in row) {
+                if (k.toLowerCase().trim() === cleanKey) return row[k];
+                if (k.toLowerCase().trim() === cleanKey.replace('_', ' ')) return row[k];
+            }
+            return "";
+        }
+
+        window.performSearch = async function() {
+            const type = document.getElementById('search-type').value;
+            const query = document.getElementById('search-input').value.trim();
+            const btn = document.getElementById('search-btn');
+            
+            const loader = document.getElementById('loader');
+            const resultCard = document.getElementById('vendor-result');
+            const errorBox = document.getElementById('error-box');
+            const initialState = document.getElementById('initial-state');
+
+            if (!query) { alert("Please enter a Vendor ID or Email."); return; }
+
+            // UI Reset
+            btn.disabled = true;
+            initialState.style.display = "none";
+            loader.style.display = "block";
+            resultCard.style.display = "none";
+            errorBox.style.display = "none";
+
+            try {
+                let v1 = [], v2 = [];
+                try {
+                    const res1 = await fetch(`${API_ROOT}/Vendors`);
+                    if(res1.ok) v1 = await res1.json();
+                } catch(e) { console.warn("Sheet 1 Failed"); }
+
+                try {
+                    const res2 = await fetch(`${API_ROOT}/Vendors_v2`);
+                    if(res2.ok) v2 = await res2.json();
+                } catch(e) { console.warn("Sheet 2 Failed"); }
+
+                const allVendors = [...(Array.isArray(v1)?v1:[]), ...(Array.isArray(v2)?v2:[])];
+
+                const found = allVendors.find(v => {
+                    if (type === 'id') {
+                        const vid = getVal(v, 'vendor_id');
+                        return String(vid).toLowerCase().trim() === query.toLowerCase();
+                    } else {
+                        const email = getVal(v, 'Email');
+                        return String(email).toLowerCase().trim() === query.toLowerCase();
+                    }
+                });
+
+                loader.style.display = "none";
+                btn.disabled = false;
+
+                if (found) displayVendor(found);
+                else errorBox.style.display = "block";
+
+            } catch (e) {
+                console.error(e);
+                loader.style.display = "none";
+                btn.disabled = false;
+                alert("Network Error.");
+            }
+        };
+
+        function displayVendor(v) {
+            const name = getVal(v, 'business_name');
+            const id = getVal(v, 'vendor_id');
+            const desc = getVal(v, 'description') || "No description.";
+            const img = getVal(v, 'image');
+            const verified = getVal(v, 'verified').toString().toLowerCase().trim();
+            const wa = getVal(v, 'whatsapp');
+            const ig = getVal(v, 'instagram');
+            const email = getVal(v, 'Email');
+            const category = getVal(v, 'Category') || "Vendor";
+            const location = getVal(v, 'location');
+            const joined = getVal(v, 'date_joined');
+            const openT = getVal(v, 'open_time');
+            const closeT = getVal(v, 'close_time');
+            const is247 = getVal(v, 'online_247');
+
+            document.getElementById('v-name').innerText = name;
+            document.getElementById('v-cat').innerText = category;
+            document.getElementById('v-desc').innerText = desc;
+            document.getElementById('v-id-disp').innerText = id;
+            document.getElementById('v-loc').innerText = location || "Online";
+            document.getElementById('v-joined').innerText = joined || "N/A";
+
+            if(img && img.startsWith('http')) document.getElementById('v-img').src = img;
+            else document.getElementById('v-img').src = '../img/default-shop.png';
+
+            const badgeContainer = document.getElementById('plan-badge-container');
+            if(verified === 'gold') {
+                badgeContainer.innerHTML = `<div class="plan-badge plan-exec"><i class="fas fa-crown"></i> Executive Plan</div>`;
+            } else if (verified === 'blue') {
+                badgeContainer.innerHTML = `<div class="plan-badge plan-prof"><i class="fas fa-check-circle"></i> Professional Plan</div>`;
+            } else {
+                badgeContainer.innerHTML = `<div class="plan-badge plan-essen"><i class="fas fa-user"></i> Essential Plan</div>`;
+            }
+
+            if (String(is247).toLowerCase() === 'true') {
+                document.getElementById('v-time').innerText = "24/7 Always Open";
+                document.getElementById('v-time').style.color = "green";
+            } else {
+                document.getElementById('v-time').innerText = (openT && closeT) ? `${openT} - ${closeT}` : "Contact for hours";
+                document.getElementById('v-time').style.color = "#333";
+            }
+
+            document.getElementById('link-wa').href = wa ? `https://wa.me/${wa}` : "#";
+            document.getElementById('link-ig').href = ig ? `https://instagram.com/${ig}` : "#";
+            document.getElementById('link-em').href = email ? `mailto:${email}` : "#";
+            
+            document.getElementById('link-ig').style.display = ig ? 'flex' : 'none';
+            document.getElementById('link-em').style.display = email ? 'flex' : 'none';
+
+            document.getElementById('vendor-result').style.display = "block";
+        }
+        
+        document.getElementById('search-type').addEventListener('change', function() {
+            const input = document.getElementById('search-input');
+            input.placeholder = this.value === 'id' ? "Enter Vendor ID (e.g. V001)" : "Enter Email Address";
+        });
+
+        // 🟢 ADDED: LISTEN FOR ENTER KEY TO SEARCH & CLOSE KEYBOARD
+        document.getElementById('search-input').addEventListener('keypress', function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                this.blur(); // Hides the keyboard on mobile
+                performSearch(); // Runs the search function
+            }
+        });
+
+    </script>
+</body>
+</html>

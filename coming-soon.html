@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Coming Soon | AFIT Digital Market</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="img/app-logo.png">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap');
+
+        :root {
+            --brand: #2d8eff;
+            --accent: #f1c40f;
+            --dark-bg: #020617;
+            /* Card Background: Darker and more opaque for the 'pop-out' effect */
+            --card-bg: rgba(15, 23, 42, 0.85);
+            --border: rgba(255, 255, 255, 0.15);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0; padding: 20px;
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--dark-bg);
+            background: radial-gradient(circle at center, #1e293b, #020617);
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; /* Prevents scroll from the rotated background */
+            color: white;
+            position: relative;
+        }
+
+        /* --- NEW WATERMARK BACKGROUND --- */
+        .bg-watermark {
+            position: fixed;
+            top: -50%; left: -50%; 
+            width: 200%; height: 200%;
+            z-index: -1;
+            
+            /* The Watermark Pattern */
+            background-image: url('img/app-logo.png'); /* Uses your logo */
+            background-repeat: repeat;
+            background-size: 100px 100px; /* Adjust spacing of logos */
+            
+            /* Diagonal Rotation & Subtle Opacity */
+            transform: rotate(-20deg);
+            opacity: 0.04; /* Very faint (5%) */
+            pointer-events: none;
+            filter: grayscale(100%) brightness(1.5); /* Makes it look like a watermark */
+        }
+
+        /* --- MAIN CARD --- */
+        .container {
+            width: 100%; max-width: 480px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            
+            /* The "Pop Out" Card Style */
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px 30px;
+            box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.6);
+            
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.95) translateY(30px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .logo {
+            width: 80px; height: 80px; object-fit: contain;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+        }
+
+        h1 {
+            font-size: 28px; font-weight: 800; margin: 0 0 10px 0;
+            color: white;
+        }
+
+        p { color: #94a3b8; font-size: 14px; margin: 0 0 30px 0; line-height: 1.6; }
+
+        /* --- COUNTDOWN TIMER --- */
+        .countdown-wrapper {
+            margin-bottom: 30px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        #timer-active { display: flex; justify-content: space-between; gap: 8px; }
+        
+        .time-box {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            padding: 8px 4px;
+            border-radius: 10px;
+        }
+
+        .t-num { font-size: 20px; font-weight: 700; color: var(--brand); display: block; }
+        .t-label { font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+        /* Pending State */
+        #timer-placeholder {
+            display: none;
+            font-size: 15px; font-weight: 500; color: #e2e8f0;
+            letter-spacing: 0.5px; padding: 5px 0;
+        }
+        .pulse-dot {
+            display: inline-block; width: 8px; height: 8px; 
+            background: var(--brand); border-radius: 50%; margin-right: 8px;
+            box-shadow: 0 0 10px var(--brand);
+            animation: pulse-dot 1.5s infinite;
+        }
+        @keyframes pulse-dot { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+        /* --- FORM & BUTTONS --- */
+        .input-wrapper {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50px; padding: 4px 4px 4px 18px;
+            border: 1px solid var(--border);
+            transition: 0.3s; margin-bottom: 25px;
+        }
+        .input-wrapper:focus-within { border-color: var(--brand); background: rgba(255,255,255,0.1); }
+
+        .email-input {
+            flex: 1; border: none; background: transparent;
+            font-size: 14px; outline: none; color: white; min-width: 0;
+        }
+        .email-input::placeholder { color: #64748b; }
+
+        .notify-btn {
+            background: var(--brand); color: white; border: none;
+            padding: 10px 18px; border-radius: 50px;
+            font-weight: 600; font-size: 12px; cursor: pointer;
+            transition: 0.2s; white-space: nowrap;
+        }
+        .notify-btn:active { transform: scale(0.95); }
+
+        .grid-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+
+        .btn {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px; border-radius: 12px; text-decoration: none;
+            font-weight: 600; font-size: 13px; cursor: pointer; border: none;
+            transition: 0.2s;
+        }
+        .btn-contact { background: rgba(37, 211, 102, 0.1); color: #25D366; border: 1px solid rgba(37, 211, 102, 0.3); }
+        .btn-vendor { background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid var(--border); }
+        
+        .btn:active { transform: scale(0.96); }
+
+        /* --- INSTALL LINK --- */
+        #install-container { display: none; margin-top: 15px; }
+        .install-link { color: #64748b; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 15px; border-radius: 20px; background: rgba(0,0,0,0.2); }
+        .install-link:hover { color: white; background: rgba(255,255,255,0.05); }
+
+    </style>
+</head>
+<body>
+
+    <div class="bg-watermark"></div>
+
+    <div class="container">
+        
+        <img src="img/logo-blue.png" alt="ADM" class="logo">
+        <h1>AFIT Digital Market</h1>
+        <p>The ultimate campus marketplace is loading.</p>
+
+        <div class="countdown-wrapper">
+            
+            <div id="timer-placeholder">
+                <span class="pulse-dot"></span> Launch Window: 22 Feb - 27 Feb
+            </div>
+
+            <div id="timer-active" style="display: none;">
+                <div class="time-box">
+                    <span class="t-num" id="days">00</span>
+                    <span class="t-label">Days</span>
+                </div>
+                <div class="time-box">
+                    <span class="t-num" id="hours">00</span>
+                    <span class="t-label">Hours</span>
+                </div>
+                <div class="time-box">
+                    <span class="t-num" id="minutes">00</span>
+                    <span class="t-label">Mins</span>
+                </div>
+                <div class="time-box">
+                    <span class="t-num" id="seconds">00</span>
+                    <span class="t-label">Secs</span>
+                </div>
+            </div>
+
+        </div>
+
+        <form action="https://formsubmit.co/afitdgm@gmail.com" method="POST">
+            <div class="input-wrapper">
+                <input type="email" name="email" class="email-input" placeholder="Enter your email..." required>
+                <input type="hidden" name="_next" value="https://afitdgm.store/coming-soon.html">
+                <input type="hidden" name="_captcha" value="false">
+                <button type="submit" class="notify-btn">Notify Me</button>
+            </div>
+        </form>
+
+        <div class="grid-buttons">
+            <a href="https://wa.me/2349153375488" class="btn btn-contact">
+                <i class="fab fa-whatsapp"></i> Support
+            </a>
+            <button onclick="promptVendorCode()" class="btn btn-vendor">
+                <i class="fas fa-store"></i> Vendor Login
+            </button>
+        </div>
+
+        <div id="install-container">
+            <div id="install-btn" class="install-link">
+                <i class="fas fa-download"></i> Install App
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ============================================
+        // 🛑 STEP 1: SET YOUR LAUNCH DATE HERE
+        // ============================================
+        // Leave empty "" to show "Launch Window: 22 Feb - 27 Feb"
+        // When ready, put date like: "Feb 25, 2026 12:00:00"
+        
+        const launchDateString = ""; 
+
+        // ============================================
+
+        const timerActive = document.getElementById('timer-active');
+        const timerPlaceholder = document.getElementById('timer-placeholder');
+
+        function startTimer() {
+            if (!launchDateString) {
+                // No date selected yet -> Show Placeholder
+                timerActive.style.display = 'none';
+                timerPlaceholder.style.display = 'block';
+                return;
+            }
+
+            // Date IS selected -> Show Timer
+            timerPlaceholder.style.display = 'none';
+            timerActive.style.display = 'flex';
+
+            const countDownDate = new Date(launchDateString).getTime();
+
+            const x = setInterval(function() {
+                const now = new Date().getTime();
+                const distance = countDownDate - now;
+
+                if (distance < 0) {
+                    clearInterval(x);
+                    document.getElementById("timer-active").innerHTML = "<h3 style='width:100%; color: #2d8eff; margin: 10px 0;'>WE ARE LIVE!</h3>";
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById("days").innerText = days < 10 ? "0" + days : days;
+                document.getElementById("hours").innerText = hours < 10 ? "0" + hours : hours;
+                document.getElementById("minutes").innerText = minutes < 10 ? "0" + minutes : minutes;
+                document.getElementById("seconds").innerText = seconds < 10 ? "0" + seconds : seconds;
+
+            }, 1000);
+        }
+
+        // Initialize Timer
+        startTimer();
+
+        // --- VENDOR & APP UTILS ---
+        function promptVendorCode() {
+            const code = prompt("Enter Vendor Access Code:");
+            if (code === "1020") window.location.href = "https://afitdgm.store/?access=vendor";
+            else if (code) alert("⛔ Access Denied");
+        }
+
+        let deferredPrompt;
+        const installContainer = document.getElementById('install-container');
+        const installBtn = document.getElementById('install-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (!/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                installContainer.style.display = 'block';
+            }
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt = null;
+                installContainer.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

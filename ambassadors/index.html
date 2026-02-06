@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  
+  <title>ADM Ambassador Program | Earn Money on AFIT Digital Market</title>
+  <meta name="description" content="Join the ADM Ambassador Program. Earn commissions by recruiting vendors.">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../asset/style.css">
+  <link rel="icon" href="../img/app-logo.png" type="image/png">
+
+  <style>
+    /* --- MODERN FORM STYLING --- */
+    .app-form {
+        background: white;
+        padding: 25px 20px;
+        border-radius: 16px;
+        margin-top: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        text-align: left;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .app-form::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 6px;
+        background: linear-gradient(90deg, #2d8eff, #6c5ce7);
+    }
+
+    .form-group { margin-bottom: 18px; position: relative; }
+    
+    .form-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #444;
+        margin-bottom: 6px;
+        display: block;
+        margin-left: 4px;
+    }
+
+    /* Input Container with Icon */
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+    
+    .input-icon {
+        position: absolute;
+        left: 15px;
+        color: #2d8eff;
+        font-size: 16px;
+        z-index: 10; /* Ensures icon stays on top */
+        pointer-events: none; /* Clicks pass through to input */
+    }
+
+    /* --- FIXED INPUT PADDING HERE --- */
+    .form-group .form-input, 
+    .form-group .form-select {
+        width: 100%;
+        /* Added !important to force space for the icon */
+        padding: 14px 14px 14px 45px !important; 
+        border: 2px solid #f0f2f5;
+        border-radius: 12px;
+        font-size: 14px;
+        background: #f8f9fa;
+        outline: none;
+        transition: all 0.3s ease;
+        color: #333;
+        font-family: inherit;
+    }
+    
+    .form-textarea {
+        width: 100%;
+        padding: 14px !important;
+        border: 2px solid #f0f2f5;
+        border-radius: 12px;
+        font-size: 14px;
+        background: #f8f9fa;
+        outline: none;
+        min-height: 100px;
+        resize: none;
+        color: #333;
+        font-family: inherit;
+    }
+
+    .form-group .form-input:focus, 
+    .form-group .form-select:focus, 
+    .form-textarea:focus {
+        background: #fff;
+        border-color: #2d8eff;
+        box-shadow: 0 4px 12px rgba(45, 142, 255, 0.1);
+    }
+
+    /* File Upload Zone */
+    .file-upload-zone {
+        border: 2px dashed #cbd5e0;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        background: #f8f9fa;
+        transition: 0.3s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    .file-upload-zone:hover, .file-upload-zone.active {
+        border-color: #2d8eff;
+        background: #eef6ff;
+    }
+    .upload-icon {
+        font-size: 24px;
+        color: #a0aec0;
+        background: white;
+        width: 50px; height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .file-upload-zone.active .upload-icon { color: #2d8eff; }
+    .upload-text { font-size: 12px; color: #718096; font-weight: 500; }
+
+    /* Submit Button */
+    .apply-btn {
+        width: 100%;
+        background: linear-gradient(135deg, #2d8eff, #1e5799);
+        color: white;
+        border: none;
+        padding: 16px;
+        border-radius: 30px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 10px;
+        box-shadow: 0 4px 15px rgba(45, 142, 255, 0.3);
+        transition: transform 0.2s;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .apply-btn:active { transform: scale(0.98); }
+
+    /* Commission Table */
+    .commission-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 15px 0;
+        font-size: 13px;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .commission-table th {
+        background: #f1f5f9;
+        color: #475569;
+        padding: 12px 15px;
+        text-align: left;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 11px;
+    }
+    .commission-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #333;
+    }
+    .commission-table tr:last-child td { border-bottom: none; }
+
+    /* Verified Grid */
+    .verified-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+    .v-card {
+        background: white;
+        padding: 15px;
+        border-radius: 16px;
+        text-align: center;
+        border: 1px solid #f0f0f0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        transition: transform 0.2s;
+    }
+    .v-avatar {
+        width: 50px; height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #eef6ff, #ffffff);
+        color: var(--primary-blue);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 18px;
+        font-weight: bold;
+        margin: 0 auto 10px;
+        border: 2px solid white;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .v-name { font-size: 14px; font-weight: 700; color: #333; margin-bottom: 4px; }
+    .v-id { font-size: 10px; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; display: inline-block; margin-bottom: 12px; color: #64748b; font-family: monospace; letter-spacing: 0.5px; }
+    .v-btn {
+        display: block;
+        background: #25D366;
+        color: white;
+        font-size: 12px;
+        padding: 8px;
+        border-radius: 20px;
+        text-decoration: none;
+        font-weight: 600;
+        box-shadow: 0 2px 5px rgba(37, 211, 102, 0.3);
+    }
+
+    /* Spinner */
+    .spinner {
+        display: none;
+        width: 20px; height: 20px;
+        border: 2px solid white;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* Dark Mode Support */
+    body.dark-mode .app-form, body.dark-mode .v-card, body.dark-mode .commission-table { background: #1e1e1e; border-color: #333; }
+    body.dark-mode .form-input, body.dark-mode .form-select, body.dark-mode .form-textarea { background: #2a2a2a; border-color: #444; color: white; }
+    body.dark-mode .form-label { color: #ccc; }
+    body.dark-mode .file-upload-zone { background: #2a2a2a; border-color: #444; }
+    body.dark-mode .upload-icon { background: #333; color: #aaa; }
+    body.dark-mode .commission-table th { background: #333; color: #ddd; }
+    body.dark-mode .commission-table td { border-color: #333; color: #ccc; }
+    body.dark-mode .v-name { color: white; }
+    body.dark-mode .v-id { background: #333; color: #bbb; }
+    body.dark-mode .v-avatar { background: #333; border-color: #444; }
+  </style>
+</head>
+<body>
+
+  <div id="preloader">
+    <div class="loader-content">
+        <img src="../img/logo-blue.png" alt="Loading..." class="loader-logo">
+        <div class="loading-bar"></div>
+    </div>
+  </div>
+
+  <div class="app-container">
+    
+    <div class="header" style="position: relative;"> 
+        <a href="../" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <div class="notification-icon-box" id="theme-toggle" style="position: absolute; right: 15px; top: 15px;">
+            <i class="fas fa-moon"></i>
+        </div>
+    </div>
+
+    <div class="content-page-wrapper">
+        
+        <div class="program-hero">
+            <h2>ADM Ambassador Program</h2>
+            <p>Help businesses grow on AFIT Digital Market and earn commissions.</p>
+            
+            <div class="app-form">
+                <form id="ambassadorForm">
+                    
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" id="name" class="form-input" placeholder="e.g. Musa Ibrahim" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="email" class="form-input" placeholder="example@gmail.com" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">WhatsApp Number</label>
+                        <div class="input-wrapper">
+                            <i class="fab fa-whatsapp input-icon"></i>
+                            <input type="tel" id="phone" class="form-input" placeholder="08123456789" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Means of Identification</label>
+                        <label for="idFile" class="file-upload-zone" id="dropZone">
+                            <div class="upload-icon"><i class="fas fa-id-card"></i></div>
+                            <span class="upload-text" id="fileName">Tap to upload ID Card Image</span>
+                        </label>
+                        <input type="file" id="idFile" accept="image/*" style="display: none;" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Experience?</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-briefcase input-icon"></i>
+                            <select id="experience" class="form-select" required>
+                                <option value="" disabled selected>Select an option</option>
+                                <option value="Yes">Yes, I have experience</option>
+                                <option value="No">No, I am a beginner</option>
+                                <option value="Some">I have tried it a few times</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Strategy (What if they say "I'll get back to you"?)</label>
+                        <textarea id="scenario" class="form-textarea" placeholder="Briefly explain your answer..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="apply-btn" id="submitBtn">
+                        <span id="btnText">Submit Application</span>
+                        <div class="spinner" id="btnSpinner"></div>
+                    </button>
+                </form>
+
+                <div class="notice-box" id="responseMsg" style="display:none; margin-top:15px; border-radius:8px;"></div>
+            </div>
+
+        </div>
+
+        <h3>How It Works</h3>
+        <div class="step-card">
+            <div class="step-num">1</div>
+            <div style="font-size:12px;"><strong>Register</strong><br>Fill the form to get your ADM-VA Code.</div>
+        </div>
+        <div class="step-card">
+            <div class="step-num">2</div>
+            <div style="font-size:12px;"><strong>Verify</strong><br>We check your ID and activate your account.</div>
+        </div>
+        <div class="step-card">
+            <div class="step-num">3</div>
+            <div style="font-size:12px;"><strong>Earn</strong><br>Sign up vendors using your code and get paid.</div>
+        </div>
+
+        <h3 style="margin-top: 25px;">Commission Structure</h3>
+        <p style="font-size:12px; color:#666; margin-bottom:10px;">Your earnings per vendor subscription:</p>
+        
+        <table class="commission-table">
+            <thead>
+                <tr>
+                    <th>Vendor Plan</th>
+                    <th>Your Reward</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>₦3,500 Plan</strong></td>
+                    <td style="color:#27ae60; font-weight:bold;">₦500 per vendor</td>
+                </tr>
+                <tr>
+                    <td><strong>₦5,000 Plan</strong></td>
+                    <td style="color:#27ae60; font-weight:bold;">₦1,000 per vendor</td>
+                </tr>
+                <tr>
+                    <td><strong>₦2,000 Plan</strong></td>
+                    <td>₦500 <span style="font-size:10px; color:#999;">(After 2 vendors)</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3 style="margin-top: 25px;">Verified Ambassadors</h3>
+        <p style="font-size:11px; color:#777; margin-bottom:10px;">Authorized recruiters you can trust.</p>
+
+        <div class="verified-grid" id="verifiedList">
+            <div style="grid-column: 1/-1; text-align: center; padding: 20px; color: #999; font-size: 12px;">
+                <i class="fas fa-circle-notch fa-spin"></i> Loading...
+            </div>
+        </div>
+        
+        <h3 style="margin-top: 30px;">Rules & Guidelines</h3>
+        <ul style="font-size: 12px; color: #555; line-height: 1.6; padding-left: 20px;">
+            <li>Fake or duplicate registrations are not allowed.</li>
+            <li>Ambassadors must use their unique ID during vendor signup.</li>
+            <li>Abuse of the system leads to immediate disqualification.</li>
+        </ul>
+
+    </div>
+
+    <footer class="site-footer">
+        <p style="margin-top:20px; color:#777; font-size: 12px;">
+    &copy; 2026 All rights reserved. Powered by 
+    <a href="https://brightsitedev.tech" target="_blank" style="color:#2d8eff; text-decoration:none; font-weight:bold;">Brightsitedev</a>
+</p>
+    </footer>
+
+  </div>
+
+  <a href="https://wa.me/2348144516127" class="whatsapp-float" target="_blank">
+    <i class="fab fa-whatsapp my-float"></i>
+  </a>
+
+  <script src="../asset/script.js"></script>
+
+  <script>
+    // --- CONFIGURATION ---
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJaw637QlwHB5D-X_peOJ2Iq2I29FDMPWXdLmCDvr6uPQehwZCF3jYVHAqqrWy3ka5tg/exec"; 
+    const IMGBB_API_KEY = "2ac38bef2c73c5a65e7ddf94efe37962"; // ✅ Added your key
+
+    // --- UI INTERACTIONS ---
+    const fileInput = document.getElementById('idFile');
+    const fileNameDisplay = document.getElementById('fileName');
+    const dropZone = document.getElementById('dropZone');
+
+    fileInput.addEventListener('change', function() {
+        if(this.files && this.files[0]) {
+            fileNameDisplay.textContent = "Selected: " + this.files[0].name;
+            dropZone.classList.add('active');
+            dropZone.querySelector('.upload-icon').style.color = "#2d8eff";
+        }
+    });
+
+    // --- FORM SUBMISSION ---
+    document.getElementById('ambassadorForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const spinner = document.getElementById('btnSpinner');
+        const responseMsg = document.getElementById('responseMsg');
+
+        // Loading State
+        btnText.style.display = "none";
+        spinner.style.display = "block";
+        submitBtn.disabled = true;
+        responseMsg.style.display = "none";
+
+        try {
+            // 1. Upload Image to ImgBB
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append("image", file);
+            
+            const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                method: "POST",
+                body: formData
+            });
+            const imgData = await imgRes.json();
+            
+            if(!imgData.success) throw new Error("Image upload failed. Check internet.");
+            const imgUrl = imgData.data.url;
+
+            // 2. Send Data to Google Sheet
+            const payload = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                experience: document.getElementById('experience').value,
+                scenario: document.getElementById('scenario').value,
+                idCardUrl: imgUrl
+            };
+
+            const sheetRes = await fetch(SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+            const sheetData = await sheetRes.json();
+
+            if(sheetData.result === "success") {
+                responseMsg.innerHTML = `
+                    <div style="color: #155724; padding: 10px;">
+                        <i class="fas fa-check-circle" style="font-size:20px; margin-bottom:5px;"></i><br>
+                        <strong>Application Sent!</strong><br>
+                        Your Temp ID: <span style="background:white; padding:2px 6px; border-radius:4px; font-weight:bold;">${sheetData.id}</span><br>
+                        <small>We will verify your ID and approve you soon.</small>
+                    </div>`;
+                responseMsg.style.background = "#d4edda";
+                responseMsg.style.textAlign = "center";
+                
+                document.getElementById('ambassadorForm').reset();
+                fileNameDisplay.textContent = "Tap to upload ID Card Image";
+                dropZone.classList.remove('active');
+            } else {
+                throw new Error("Sheet Error: " + sheetData.error);
+            }
+
+        } catch (error) {
+            responseMsg.innerHTML = `<strong>Error:</strong> ${error.message}`;
+            responseMsg.style.background = "#f8d7da";
+            responseMsg.style.color = "#721c24";
+            responseMsg.style.padding = "10px";
+        } finally {
+            responseMsg.style.display = "block";
+            btnText.style.display = "block";
+            spinner.style.display = "none";
+            submitBtn.disabled = false;
+        }
+    });
+
+    // --- FETCH VERIFIED AMBASSADORS ---
+    async function loadVerifiedAmbassadors() {
+        const listContainer = document.getElementById('verifiedList');
+        try {
+            const res = await fetch(SCRIPT_URL);
+            const data = await res.json();
+
+            listContainer.innerHTML = ""; 
+
+            if (!data || data.length === 0) {
+                listContainer.innerHTML = "<p style='grid-column:1/-1; text-align:center; font-size:12px; color:#999; padding:20px;'>No verified ambassadors yet.</p>";
+                return;
+            }
+
+            data.forEach(user => {
+                const initial = user.name.charAt(0).toUpperCase();
+                let cleanPhone = user.whatsapp.toString().replace(/\D/g, ''); 
+                if (cleanPhone.startsWith('0')) cleanPhone = '234' + cleanPhone.substring(1);
+
+                const card = `
+                    <div class="v-card">
+                        <div class="v-avatar">${initial}</div>
+                        <div class="v-name">${user.name}</div>
+                        <div class="v-id">${user.id}</div>
+                        <a href="https://wa.me/${cleanPhone}?text=Hello%20${user.name.split(' ')[0]},%20I%20want%20to%20register%20as%20a%20vendor%20on%20ADM" class="v-btn" target="_blank">
+                            <i class="fab fa-whatsapp"></i> Chat
+                        </a>
+                    </div>
+                `;
+                listContainer.innerHTML += card;
+            });
+
+        } catch (e) {
+            console.error(e);
+            listContainer.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:red; font-size:11px;'>Could not load list.</p>";
+        }
+    }
+
+    loadVerifiedAmbassadors();
+  </script>
+</body>
+</html>

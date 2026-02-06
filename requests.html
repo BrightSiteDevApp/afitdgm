@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Requests - AFIT Digital Market</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="img/app-logo.png">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #2d8eff;
+            --primary-dark: #1a73e8;
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --text: #1c1e21;
+            --text-sec: #65676b;
+            --border: #ddd;
+            --shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        body.dark-mode {
+            --bg: #18191a;
+            --card-bg: #242526;
+            --text: #e4e6eb;
+            --text-sec: #b0b3b8;
+            --border: #3e4042;
+            --shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        body { 
+            background-color: var(--bg); 
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            transition: background 0.3s, color 0.3s;
+        }
+        
+        /* HEADER */
+        .req-header {
+            background: var(--card-bg);
+            padding: 15px 20px;
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .header-title { font-weight: 700; font-size: 18px; }
+        
+        /* CARD LIST */
+        .req-list { max-width: 600px; margin: 20px auto; padding: 0 15px 80px 15px; }
+        
+        .req-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            position: relative;
+            transition: transform 0.2s;
+        }
+        .req-card:active { transform: scale(0.98); }
+
+        .req-title { font-weight: 700; font-size: 17px; margin-bottom: 8px; }
+        .req-badge { 
+            font-size: 11px; background: var(--bg); color: var(--text-sec); 
+            padding: 4px 10px; border-radius: 20px; margin-right: 5px; font-weight: 600;
+            border: 1px solid var(--border);
+        }
+        .req-budget { 
+            color: #00a400; font-weight: 700; font-size: 14px; 
+            background: rgba(0, 164, 0, 0.1); padding: 4px 10px; border-radius: 8px; 
+            display: inline-block; margin-top: 5px;
+        }
+        .req-meta { 
+            font-size: 12px; color: var(--text-sec); margin-top: 15px; 
+            display: flex; justify-content: space-between; align-items: center; 
+        }
+        
+        .btn-call {
+            background: linear-gradient(135deg, #2d8eff, #1a73e8); 
+            color: white; border: none;
+            padding: 8px 18px; border-radius: 25px; font-size: 13px; font-weight: 600;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+            box-shadow: 0 4px 10px rgba(45, 142, 255, 0.3);
+        }
+
+        /* FAB Buttons */
+        .fab-container {
+            position: fixed; bottom: 25px; right: 25px; z-index: 200;
+            display: flex; flex-direction: column; gap: 15px; align-items: flex-end;
+        }
+        .fab-btn {
+            width: 55px; height: 55px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 22px; cursor: pointer; color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .fab-btn:active { transform: scale(0.9); }
+        .fab-add { background: linear-gradient(135deg, #2d8eff, #0056b3); }
+        .fab-help { background: #6c757d; width: 45px; height: 45px; font-size: 18px; }
+
+        /* MODAL STYLES */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(3px);
+            z-index: 2000; justify-content: center; align-items: flex-end;
+        }
+        .modal-content {
+            background: var(--card-bg); width: 100%; max-width: 500px;
+            border-radius: 24px 24px 0 0; padding: 30px;
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative; box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
+        }
+        .modal-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; }
+        
+        .form-input, .form-select {
+            width: 100%; padding: 14px; margin-bottom: 15px;
+            border: 1px solid var(--border); border-radius: 12px; 
+            background: var(--bg); color: var(--text); font-size: 15px;
+            box-sizing: border-box; /* Fixes padding issues */
+            transition: border 0.3s;
+        }
+        .form-input:focus, .form-select:focus { outline: none; border-color: var(--primary); background: var(--card-bg); }
+        
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        /* Delete Button */
+        .btn-delete {
+            position: absolute; top: 15px; right: 15px;
+            color: #ff4757; background: rgba(255, 71, 87, 0.1); border: none;
+            width: 32px; height: 32px; border-radius: 50%;
+            cursor: pointer; display: flex; justify-content: center; align-items: center;
+        }
+
+        /* Rules Box */
+        .rules-box {
+            background: rgba(45, 142, 255, 0.1); border-left: 4px solid var(--primary);
+            padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; line-height: 1.5;
+        }
+
+        #load-more-btn {
+            background: var(--card-bg); color: var(--text); border: 1px solid var(--border);
+            padding: 10px 25px; border-radius: 30px; font-weight: 600; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <script>
+        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+    </script>
+
+    <div class="req-header">
+        <a href="/" style="color:var(--text); font-size: 20px;"><i class="fas fa-arrow-left"></i></a>
+        <div class="header-title">Market Requests</div>
+        <div style="width:20px;"></div>
+    </div>
+
+    <div id="role-badge" style="text-align:center; padding:10px; font-size:12px; color:var(--text-sec); background:var(--bg); border-bottom: 1px solid var(--border);">
+        Identifying User...
+    </div>
+
+    <div class="req-list" id="requests-container">
+        <div style="text-align:center; padding:60px; color:var(--text-sec);">
+            <i class="fas fa-circle-notch fa-spin" style="font-size: 24px;"></i><br><br>Loading Requests...
+        </div>
+    </div>
+
+    <div id="load-more-container" style="text-align:center; margin-bottom:80px; display:none;">
+        <button id="load-more-btn">Load More</button>
+    </div>
+
+    <div class="fab-container">
+        <div class="fab-btn fab-help" onclick="showDailyRules(true)">
+            <i class="fas fa-question"></i>
+        </div>
+        <div class="fab-btn fab-add" onclick="openModal()">
+            <i class="fas fa-plus"></i>
+        </div>
+    </div>
+
+    <div id="request-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                <div class="modal-title">Post a Request</div>
+                <button onclick="closeModal()" style="background:none; border:none; font-size:28px; color:var(--text-sec); cursor:pointer;">&times;</button>
+            </div>
+            
+            <p style="font-size:13px; color:var(--text-sec); margin-bottom:20px;">
+                Vendors will contact you directly via WhatsApp.
+            </p>
+            
+            <input type="text" id="req-title" class="form-input" placeholder="What do you need? (e.g. iPhone XR)">
+            
+            <select id="req-category" class="form-select">
+                <option value="" disabled selected>Select Category</option>
+                <option value="Phone">Phone</option>
+                <option value="Laptops">Laptops</option>
+                <option value="Gadgets">Gadgets</option>
+                <option value="Fashion">Fashion</option>
+                <option value="Fashion Accessories">Fashion Accessories</option>
+                <option value="Phone Accessories">Phone Accessories</option>
+                <option value="Appliances">Appliances</option>
+                <option value="Food & Snacks">Food & Snacks</option>
+                <option value="Fragrance">Fragrance</option>
+                <option value="Hair Services">Hair Services</option>
+                <option value="Graphic Design">Graphic Design</option>
+                <option value="Lifestyle">Lifestyle</option>
+                <option value="Nail Care">Nail Care</option>
+                <option value="Services">Services (General)</option>
+                <option value="Sport Kits">Sport Kits</option>
+            </select>
+
+            <input type="number" id="req-budget" class="form-input" placeholder="Budget (₦)">
+            <input type="tel" id="req-phone" class="form-input" placeholder="WhatsApp Number (090...)">
+            
+            <button onclick="submitRequest()" class="chat-btn" style="width:100%; background:var(--primary); color: white; border:none; padding:15px; border-radius:12px; font-weight:bold; cursor:pointer; font-size:16px; margin-top:10px;">
+                Post Request
+            </button>
+        </div>
+    </div>
+
+    <div id="rules-modal" class="modal-overlay" style="z-index: 2100;">
+        <div class="modal-content">
+            <div style="text-align:center; margin-bottom:15px;">
+                <i class="fas fa-shield-alt" style="font-size:40px; color:#f1c40f; margin-bottom:10px;"></i>
+                <div class="modal-title">Usage Guidelines</div>
+            </div>
+            
+            <div class="rules-box">
+                <ul style="margin:0; padding-left:20px; color:var(--text);">
+                    <li style="margin-bottom:8px;"><strong>Max 2 Requests:</strong> You can only have 2 active requests at a time. Delete old ones to post new ones.</li>
+                    <li style="margin-bottom:8px;"><strong>Delete when done:</strong> Once a vendor contacts you and you buy the item, please delete the request.</li>
+                    <li style="margin-bottom:8px;"><strong>No Spamming:</strong> There is a waiting period between posts. Spamming leads to an account ban.</li>
+                </ul>
+            </div>
+            
+            <button onclick="closeRules()" style="width:100%; background:var(--text); color:var(--card-bg); border:none; padding:15px; border-radius:12px; font-weight:bold; cursor:pointer;">
+                I Understand
+            </button>
+        </div>
+    </div>
+
+  <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, limit, startAfter } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // ✅ KEYS
+        const EMAILJS_SERVICE_ID = "service_ukl05om";
+        const EMAILJS_TEMPLATE_ID = "template_rj6x3zo"; 
+        const EMAILJS_PUBLIC_KEY = "Ww8hT6yumuO2KYzeU"; 
+
+        // Initialize EmailJS
+        if(typeof emailjs !== 'undefined') {
+            emailjs.init(EMAILJS_PUBLIC_KEY);
+        }
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+            authDomain: "afit-market-auth.firebaseapp.com",
+            projectId: "afit-market-auth",
+            storageBucket: "afit-market-auth.firebasestorage.app",
+            messagingSenderId: "894920886640",
+            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const ADMIN_EMAIL = "afitdgm@gmail.com";
+        const SHEET_ID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+        const API_ROOT = `https://opensheet.elk.sh/${SHEET_ID}`;
+        
+        let currentUser = null;
+        let isSuperAdmin = false;
+        let currentMode = 'all'; 
+        let lastVisibleDoc = null;
+        let isFetching = false;
+        const BATCH_SIZE = 10;
+
+        // 🌟 CHECK RULES ON LOAD
+        setTimeout(() => {
+            const lastSeen = localStorage.getItem('rules_seen_date');
+            const today = new Date().toDateString();
+            if(lastSeen !== today) {
+                showDailyRules();
+                localStorage.setItem('rules_seen_date', today);
+            }
+        }, 1500);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                isSuperAdmin = user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+                const roleText = document.getElementById('role-badge');
+                
+                if (isSuperAdmin) {
+                    roleText.innerHTML = "👑 Admin Mode: Viewing All Requests";
+                    resetAndLoad('all');
+                } else {
+                    checkIfVendor(user.email).then(isVendor => {
+                        if (isVendor) {
+                            roleText.innerHTML = "🏪 Vendor Mode: Viewing Potential Customers";
+                            resetAndLoad('all');
+                        } else {
+                            roleText.innerHTML = "🎓 Student Mode: Viewing Your Requests Only";
+                            resetAndLoad('mine');
+                        }
+                    });
+                }
+                
+                // Load More Listener
+                document.getElementById('load-more-btn').addEventListener('click', loadNextBatch);
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        function getSmartValue(row, key) {
+            if(!row) return null;
+            return row[key] || row[key.toLowerCase()] || row[key.toUpperCase()] || null;
+        }
+
+        async function checkIfVendor(email) {
+            try {
+                const [v1, v2] = await Promise.all([
+                    fetch(`${API_ROOT}/Vendors`).then(res => res.json()),
+                    fetch(`${API_ROOT}/Vendors_v2`).then(res => res.json().catch(() => []))
+                ]);
+                const allVendors = [...v1, ...v2];
+                return allVendors.some(v => {
+                    const vEmail = getSmartValue(v, 'Email');
+                    return vEmail && vEmail.toLowerCase().trim() === email.toLowerCase().trim();
+                });
+            } catch (e) { return false; }
+        }
+
+        function resetAndLoad(mode) {
+            currentMode = mode;
+            lastVisibleDoc = null;
+            document.getElementById('requests-container').innerHTML = "";
+            loadNextBatch();
+        }
+
+        async function loadNextBatch() {
+            if(isFetching) return;
+            isFetching = true;
+            const container = document.getElementById('requests-container');
+            const loadBtnDiv = document.getElementById('load-more-container');
+            const loadBtn = document.getElementById('load-more-btn');
+            loadBtn.innerText = "Loading...";
+
+            try {
+                const reqRef = collection(db, "public_requests");
+                let q;
+                if (currentMode === 'all') {
+                    if (lastVisibleDoc) {
+                        q = query(reqRef, orderBy("timestamp", "desc"), startAfter(lastVisibleDoc), limit(BATCH_SIZE));
+                    } else {
+                        q = query(reqRef, orderBy("timestamp", "desc"), limit(BATCH_SIZE));
+                    }
+                } else {
+                    q = query(reqRef, where("userId", "==", currentUser.uid), limit(BATCH_SIZE * 2)); 
+                }
+
+                const snapshot = await getDocs(q);
+
+                if (snapshot.empty) {
+                    if (!lastVisibleDoc) {
+                        container.innerHTML = `
+                            <div style="text-align:center; padding:50px; color:var(--text-sec);">
+                                <i class="fas fa-inbox" style="font-size:40px; margin-bottom:10px;"></i>
+                                <p>${currentMode === 'all' ? "No active requests." : "You haven't posted any requests."}</p>
+                            </div>`;
+                    }
+                    loadBtnDiv.style.display = 'none';
+                    isFetching = false;
+                    return;
+                }
+
+                if (currentMode === 'all') {
+                    lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
+                }
+
+                let docs = snapshot.docs;
+                if (currentMode === 'mine') {
+                    docs.sort((a, b) => {
+                        const tA = a.data().timestamp ? a.data().timestamp.seconds : 0;
+                        const tB = b.data().timestamp ? b.data().timestamp.seconds : 0;
+                        return tB - tA; 
+                    });
+                }
+
+                docs.forEach(docSnap => {
+                    const d = docSnap.data();
+                    const isOwner = d.userId === currentUser.uid;
+                    
+                    let timeString = "Just now";
+                    if(d.timestamp) {
+                        timeString = new Date(d.timestamp.seconds * 1000).toLocaleDateString();
+                    }
+
+                    let deleteBtn = "";
+                    if (isOwner || isSuperAdmin) {
+                        deleteBtn = `<button class="btn-delete" onclick="deleteRequest('${docSnap.id}')"><i class="fas fa-trash"></i></button>`;
+                    }
+
+                    let categoryTag = d.category ? `<span class="req-badge">${d.category}</span>` : "";
+
+                    container.innerHTML += `
+                    <div class="req-card">
+                        ${deleteBtn}
+                        <div class="req-title">${d.title}</div>
+                        <div style="margin-bottom:5px;">${categoryTag}</div>
+                        <div class="req-budget">Budget: ₦${parseInt(d.budget).toLocaleString()}</div>
+                        <div class="req-meta">
+                            <span><i class="far fa-clock"></i> ${timeString}</span>
+                            <a href="https://wa.me/${d.phone}?text=Hi, I saw your request for '${d.title}' on AFIT Market." class="btn-call">
+                                <i class="fab fa-whatsapp"></i> Contact
+                            </a>
+                        </div>
+                    </div>`;
+                });
+
+                if (snapshot.size < BATCH_SIZE) {
+                    loadBtnDiv.style.display = 'none';
+                } else {
+                    loadBtnDiv.style.display = 'block';
+                    loadBtn.innerText = "Load More";
+                }
+
+            } catch (err) {
+                console.error(err);
+                if(!lastVisibleDoc) container.innerHTML = "<p style='text-align:center; color:red;'>Error loading requests.</p>";
+            }
+            isFetching = false;
+        }
+
+        // 🔴 SUBMIT FUNCTION WITH SPAM PROTECTION 🔴
+        window.submitRequest = async function() {
+            const title = document.getElementById('req-title').value;
+            const budget = document.getElementById('req-budget').value;
+            const phone = document.getElementById('req-phone').value;
+            const categorySelect = document.getElementById('req-category');
+            const category = categorySelect ? categorySelect.value : "";
+            const btn = document.querySelector('.chat-btn');
+
+            if(!title || !budget || !phone || !category) { 
+                alert("Please fill all fields and select a Category."); 
+                return; 
+            }
+
+            btn.innerText = "Checking Limits...";
+            btn.disabled = true;
+
+            try {
+                // 🛑 1. CHECK ACTIVE REQUESTS LIMIT
+                const qLimit = query(collection(db, "public_requests"), where("userId", "==", currentUser.uid));
+                const snapLimit = await getDocs(qLimit);
+                const activeCount = snapLimit.size;
+
+                if (activeCount >= 2) {
+                    alert("🚫 LIMIT REACHED!\nYou have 2 active requests. Please delete an old request before posting a new one to prevent spam.");
+                    btn.innerText = "Post Request";
+                    btn.disabled = false;
+                    return;
+                }
+
+                // 🛑 2. CHECK TIME COOLDOWN
+                const now = Date.now();
+                const lastPostTime = localStorage.getItem('last_req_time');
+                const cooldownEnd = localStorage.getItem('cooldown_end');
+
+                // If user is in the "2 Hour Jail"
+                if(cooldownEnd && now < parseInt(cooldownEnd)) {
+                     const remainingMins = Math.ceil((parseInt(cooldownEnd) - now) / 60000);
+                     alert(`🚫 COOLDOWN ACTIVE!\nYou posted frequently. Please wait ${remainingMins} minutes before posting again.`);
+                     btn.innerText = "Post Request";
+                     btn.disabled = false;
+                     return;
+                }
+
+                // If user is in the "5 Minute Wait"
+                if (lastPostTime && (now - parseInt(lastPostTime)) < 5 * 60 * 1000) {
+                    const waitLeft = Math.ceil((300000 - (now - parseInt(lastPostTime))) / 60000);
+                    alert(`⏳ PLEASE WAIT!\nYou must wait ${waitLeft} minutes between requests.`);
+                    btn.innerText = "Post Request";
+                    btn.disabled = false;
+                    return;
+                }
+
+                // If this is their 2nd request (activeCount will be 1 before adding this one), set the 2hr lock
+                if(activeCount === 1) {
+                    // Set 2 hour lock from NOW
+                    localStorage.setItem('cooldown_end', (now + (2 * 60 * 60 * 1000)).toString());
+                }
+
+                // ✅ PROCEED TO POST
+                btn.innerText = "Processing...";
+
+                // 3. Save to Firebase
+                await addDoc(collection(db, "public_requests"), {
+                    title: title,
+                    budget: budget,
+                    phone: phone.replace(/[^0-9]/g, ''),
+                    category: category,
+                    userId: currentUser.uid,
+                    userName: currentUser.displayName || "Student",
+                    timestamp: new Date()
+                });
+
+                // Update Timers
+                localStorage.setItem('last_req_time', now.toString());
+
+                // 4. Fetch Vendors with Error Check
+                let v1 = [], v2 = [];
+                let sheetError = false;
+
+                try {
+                    [v1, v2] = await Promise.all([
+                        fetch(`${API_ROOT}/Vendors`).then(res => { if(!res.ok) throw new Error(); return res.json(); }),
+                        fetch(`${API_ROOT}/Vendors_v2`).then(res => { if(!res.ok) throw new Error(); return res.json(); })
+                    ]);
+                } catch(e) { sheetError = true; }
+
+                const allVendors = [...(Array.isArray(v1)?v1:[]), ...(Array.isArray(v2)?v2:[])];
+                
+                if(allVendors.length === 0 && sheetError) {
+                    alert("Request Saved! (But vendors not notified due to network).");
+                    location.reload();
+                    return;
+                }
+
+                // 5. Send Email
+                const targetCat = category.toLowerCase();
+                const filteredVendors = allVendors.filter(v => {
+                    const c = getSmartValue(v, 'Category');
+                    const e = getSmartValue(v, 'Email');
+                    if(!c || !e) return false;
+                    return c.toLowerCase().split(',').map(x=>x.trim()).includes(targetCat);
+                });
+
+                const emailSet = new Set(filteredVendors.map(v => getSmartValue(v, 'Email').trim()));
+                const vendorEmails = Array.from(emailSet).join(',');
+
+                if(vendorEmails.length > 0) {
+                    const emailPromise = emailjs.send(
+                        EMAILJS_SERVICE_ID, 
+                        EMAILJS_TEMPLATE_ID, 
+                        {
+                            request_title: title,
+                            request_budget: budget,
+                            request_category: category,
+                            user_phone: phone,
+                            bcc_emails: vendorEmails
+                        },
+                        EMAILJS_PUBLIC_KEY
+                    );
+
+                    const timeoutPromise = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error("Email connection timed out")), 20000)
+                    );
+
+                    await Promise.race([emailPromise, timeoutPromise]);
+                    alert(`Success! Request posted and ${emailSet.size} vendors notified.`);
+                } else {
+                    alert("Request Posted! (No vendors matched this category yet).");
+                }
+
+                closeModal();
+                location.reload(); 
+
+            } catch (err) {
+                console.error("Full Error Object:", err);
+                const errorMessage = err.text || err.message || "Unknown error";
+                alert("Request Posted! (Note: Email notification failed: " + errorMessage + ")");
+                location.reload();
+            }
+        };
+
+        window.deleteRequest = async function(docID) {
+            if(!confirm("Delete this request? This will allow you to post a new one.")) return;
+            try {
+                await deleteDoc(doc(db, "public_requests", docID));
+                location.reload();
+            } catch(e) { alert("Error deleting."); }
+        }
+
+        window.openModal = () => document.getElementById('request-modal').style.display = 'flex';
+        window.closeModal = () => document.getElementById('request-modal').style.display = 'none';
+        
+        window.showDailyRules = (manual = false) => {
+            document.getElementById('rules-modal').style.display = 'flex';
+            if(manual) localStorage.setItem('rules_seen_date', new Date().toDateString());
+        };
+        window.closeRules = () => document.getElementById('rules-modal').style.display = 'none';
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
+  
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  
+  <title>FAQ | AFIT Digital Market (ADM) Help Center</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../asset/style.css">
+  
+   <link rel="icon" href="../img/app-logo.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="../img/app-logo.png">
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+  <style>
+      /* --- FAQ ACCORDION ANIMATIONS --- */
+      /* These work with your asset/script.js */
+      
+      .faq-answer {
+          display: none; 
+          padding: 15px;
+          color: #555;
+          font-size: 14px;
+          line-height: 1.5;
+          border-top: 1px solid #eee;
+      }
+
+      /* When script.js adds the 'active' class, this runs */
+      .faq-item.active .faq-answer {
+          display: block;
+          animation: slideDown 0.3s ease-out;
+      }
+
+      @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+      }
+
+      .faq-question {
+          cursor: pointer;
+          padding: 15px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-weight: 500;
+          transition: background 0.2s;
+          user-select: none;
+      }
+
+      .faq-question:hover {
+          background-color: #f9f9f9;
+      }
+
+      .arrow {
+          transition: transform 0.3s ease;
+      }
+
+      .faq-item.active .arrow {
+          transform: rotate(90deg);
+      }
+
+      /* --- GENERAL INFORMATION LABEL --- */
+      .faq-header-label {
+          padding: 15px 15px 5px;
+          font-size: 12px;
+          color: #777;
+          font-weight: bold;
+          text-transform: uppercase;
+          background-color: transparent; 
+      }
+
+      /* --- DARK MODE COLOR FIXES --- */
+      
+      /* Fix the Label color */
+      body.dark-mode .faq-header-label {
+          color: #bbb; 
+          background-color: #1a1a1a; 
+      }
+
+      /* Fix the Question Background */
+      body.dark-mode .faq-item {
+          background-color: #2d2d2d;
+          border-bottom: 1px solid #444;
+      }
+
+      body.dark-mode .faq-question {
+          background-color: #2d2d2d;
+          color: #fff;
+      }
+      
+      /* Active/Hover state in Dark Mode */
+      body.dark-mode .faq-question:hover,
+      body.dark-mode .faq-item.active .faq-question {
+          background-color: #3d3d3d; 
+          color: #fff;
+      }
+
+      /* Answer text in Dark Mode */
+      body.dark-mode .faq-answer {
+          background-color: #222; 
+          color: #ddd; 
+          border-top: 1px solid #444;
+      }
+
+      /* Container Background */
+      body.dark-mode .faq-container {
+          background-color: #1a1a1a;
+      }
+  </style>
+</head>
+<body>
+    <div id="preloader">
+        <div class="loader-content">
+            <img src="../img/logo-blue.png" alt="Loading..." class="loader-logo">
+            <div class="loading-bar"></div>
+        </div>
+    </div>
+
+
+  <div class="app-container">
+    
+    <div class="header" style="position: relative;"> <a href="../" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+    
+    <div class="notification-icon-box" id="theme-toggle" style="position: absolute; right: 15px; top: 15px;">
+        <i class="fas fa-moon"></i>
+    </div>
+    </div>
+
+    <div class="faq-container">
+        
+        <div class="faq-header-label">
+            General Information
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>1. What is AFIT Digital Market (ADM)?</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </div>
+            <div class="faq-answer">
+                AFIT Digital Market (ADM) is an online platform that connects buyers and vendors to buy and sell products and services. We provide a space where businesses and individuals can showcase their offerings and connect with potential customers.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>2. Is ADM an online shop?</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </div>
+            <div class="faq-answer">
+                No. ADM is not a direct online store. We do not sell products ourselves. We only provide a platform for vendors and buyers to meet and interact.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>3. How do I buy items on ADM?</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </div>
+            <div class="faq-answer">
+                You can browse listings, search for products or services, and contact vendors directly using the contact information provided on each listing. Payments and delivery are arranged between you and the vendor.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>4. Does ADM handle payments?</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </div>
+            <div class="faq-answer">
+                No. ADM does not collect, hold, or process payments. All payments are made directly between buyers and vendors.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>5. How do I know if a vendor is trustworthy?</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </div>
+            <div class="faq-answer">
+                Some vendors may have a Verified Vendor badge, which indicates that certain details have been reviewed. However, verification does not guarantee transactions. Users are advised to always follow safety guidelines and exercise caution.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>6. What does the Verified badge mean?</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </div>
+            <div class="faq-answer">
+                The Verified badge means the vendor has provided additional information for identity or business confirmation. It does not mean ADM guarantees the vendor or their products.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>7. Can I meet vendors physically?</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </div>
+            <div class="faq-answer">
+                Yes, but we strongly advise meeting in public and secure locations, preferably during the daytime. Never meet in isolated areas and always inform someone before going to meet a vendor.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>8. Is it safe to pay before seeing the product?</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </div>
+            <div class="faq-answer">
+                We recommend inspecting products physically before making payment. Avoid paying in advance unless you fully trust the vendor.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>9. What should I do if I suspect a scam?</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </div>
+            <div class="faq-answer">
+                If you notice suspicious behavior, stop the interaction immediately and report the vendor through our platform. Do not send money or personal details.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>10. Can I sell on ADM?</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </div>
+            <div class="faq-answer">
+                Yes. Vendors can list their products or services by following the platform’s posting guidelines. Vendors are responsible for the accuracy of their listings.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>11. Are listings reviewed before being published?</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </div>
+            <div class="faq-answer">
+                Some listings may be reviewed, but ADM does not guarantee the quality, legality, or authenticity of items listed.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>12. Can I return or refund items bought?</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </div>
+            <div class="faq-answer">
+                Refunds and returns are handled only between buyers and vendors. ADM is not responsible for refund disputes.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>13. Does ADM charge fees?</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </div>
+            <div class="faq-answer">
+                Currently, some features may be free while others may require fees in the future. Any charges will always be clearly communicated.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>14. Why is my search not showing results?</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </div>
+            <div class="faq-answer">
+                This may be due to limited listings, incorrect keywords, or filters applied. Try adjusting your search terms.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>15. Is my personal information safe?</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </div>
+            <div class="faq-answer">
+                We take user privacy seriously and encourage users not to share sensitive information publicly or with untrusted parties.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>16. Can ADM be held responsible?</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </div>
+            <div class="faq-answer">
+                No. ADM is not responsible for disputes, losses, or damages resulting from interactions between users.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>17. How can I contact ADM?</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </div>
+            <div class="faq-answer">
+                You can reach us through the contact information provided on the website.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>18. Will ADM add more features?</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </div>
+            <div class="faq-answer">
+                Yes. We plan to continuously improve the platform by adding new features and improving user experience.
+            </div>
+        </div>
+
+        <div style="padding: 20px; text-align: center; color: #999; font-size: 11px;">
+            Last updated: 2026
+        </div>
+
+    </div>
+
+    <footer class="site-footer">
+        
+        <div class="footer-newsletter" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #444;">
+            <h4 style="color: white; margin-bottom: 8px; font-size: 14px;">Join our Community</h4>
+            <p style="font-size: 11px; color: #aaa; margin-bottom: 12px;">Get updates on new vendors and flash sales.</p>
+            
+            <form action="https://formspree.io/f/mdakzbpy" method="POST" style="display: flex; justify-content: center; gap: 8px; max-width: 300px; margin: 0 auto;">
+                <input type="email" name="email" placeholder="Enter email" required 
+                       style="width: 70%; padding: 8px 12px; border-radius: 20px; border: none; outline: none; font-size: 12px;">
+                <button type="submit" 
+                        style="width: 30%; background: var(--primary-blue); color: white; border: none; padding: 8px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer;">
+                    Join
+                </button>
+            </form>
+            </div>
+
+        <div class="footer-links">
+            <a href="../about-us/">About Us</a> | 
+            <a href="../safety/">Safety Tips</a> | 
+            <a href="../t&c/">T & C</a> | 
+            <a href="../contact-us/">Contact</a>
+        </div>
+        
+      <p style="margin-top:20px; color:#777; font-size: 12px;">
+    &copy; 2026 All rights reserved. Powered by 
+    <a href="https://brightsitedev.tech" target="_blank" style="color:#2d8eff; text-decoration:none; font-weight:bold;">Brightsitedev</a>
+</p>
+    </footer>
+
+  </div>
+
+<script src="../asset/script.js"></script>
+
+<script type="text/javascript">
+(function(w,d,v3){
+w.chaportConfig = {
+appId : '695935cd783cb76f48a392a4',
+};
+
+if(w.chaport)return;v3=w.chaport={};v3._q=[];v3._l={};v3.q=function(){v3._q.push(arguments)};v3.on=function(e,fn){if(!v3._l[e])v3._l[e]=[];v3._l[e].push(fn)};var s=d.createElement('script');s.type='text/javascript';s.async=true;s.src='https://app.chaport.com/javascripts/insert.js';var ss=d.getElementsByTagName('script')[0];ss.parentNode.insertBefore(s,ss)})(window, document);
+</script>
+</body>
+</html>

@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+     <script> 
+    (function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const isAdmin = localStorage.getItem('adm_dev_mode');
+
+        if (urlParams.get('access') === 'vendor') {
+            window.location.href = 'dashboard.html';
+            return; 
+        } 
+
+        if (urlParams.get('mode') === 'admin') {
+            localStorage.setItem('adm_dev_mode', 'true');
+            alert("✅ Developer Mode Unlocked!");
+            return;
+        }
+
+        if (!isAdmin) {
+            window.location.href = 'coming-soon.html'; 
+        }
+    })(); 
+    </script>
+    
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-70VSGR5WBW');
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Vendor Profile - AFIT Market</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="asset/style.css">
+  
+  <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="img/app-logo.png">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+
+  <style>
+      /* Hide content until loaded */
+      #profile-content { display: none; }
+      
+      /* Status Colors */
+      .status-open { background: #e6fffa !important; color: #00b894 !important; border: 1px solid #00b894; }
+      .status-closed { background: #fff5f5 !important; color: #d63031 !important; border: 1px solid #d63031; }
+
+      /* LOAD MORE BUTTON STYLE */
+      #load-more-btn {
+          display: block;
+          margin: 30px auto;
+          background: #333;
+          color: white;
+          border: none;
+          padding: 12px 30px;
+          border-radius: 30px;
+          font-weight: bold;
+          cursor: pointer;
+          transition: transform 0.2s, background 0.2s;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      }
+      #load-more-btn:active { transform: scale(0.95); }
+      #load-more-container { text-align: center; width: 100%; margin-bottom: 40px; }
+
+      /* --- 🆕 TEXT & MODAL STYLES --- */
+      .ad-title {
+          white-space: normal !important;
+          line-height: 1.3;
+          height: auto !important;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          margin-bottom: 5px;
+      }
+      .ad-desc-preview {
+          font-size: 11px; color: #888;
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+          margin-bottom: 8px;
+      }
+
+      @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+      .modal-sheet {
+          background: white; width: 100%; max-width: 500px;
+          border-radius: 20px 20px 0 0; padding: 25px;
+          animation: slideUp 0.3s ease-out;
+          position: relative;
+      }
+
+      /* --- SKELETON LOADING STYLES --- */
+      .skeleton-pulse {
+          animation: skeleton-loading 1.5s infinite ease-in-out;
+          background-color: #eee;
+          background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee);
+          background-size: 200px 100%;
+          background-repeat: no-repeat;
+          border-radius: 4px;
+          color: transparent !important;
+      }
+
+      @keyframes skeleton-loading {
+          0% { background-position: -200px 0; }
+          100% { background-position: calc(200px + 100%) 0; }
+      }
+
+      /* Profile Skeleton Specifics */
+      .sk-container {
+          padding: 20px;
+          background: #fff;
+          border-radius: 15px;
+          box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+          text-align: center;
+          margin-bottom: 20px;
+      }
+      .sk-avatar { width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 15px; }
+      .sk-title { width: 60%; height: 24px; margin: 0 auto 10px; }
+      .sk-badge { width: 80px; height: 15px; margin: 0 auto 20px; border-radius: 10px; }
+      .sk-line { width: 90%; height: 12px; margin: 8px auto; }
+      .sk-line-short { width: 50%; height: 12px; margin: 8px auto; }
+      
+      .sk-btn-lg { width: 80%; max-width: 240px; height: 45px; margin: 25px auto 10px; border-radius: 30px; }
+      .sk-btn-sm { width: 135px; height: 40px; margin: 10px auto; border-radius: 30px; }
+      
+      /* Product Card Skeleton */
+      .skeleton-card {
+          background: #fff;
+          border-radius: 10px;
+          padding: 10px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          height: 220px;
+      }
+      .sk-img-rect { width: 100%; height: 120px; border-radius: 8px; background: #eee; animation: skeleton-loading 1.5s infinite linear; }
+      .sk-text-short { width: 40%; height: 15px; background: #eee; border-radius: 4px; animation: skeleton-loading 1.5s infinite linear; }
+      .sk-text-long { width: 90%; height: 15px; background: #eee; border-radius: 4px; animation: skeleton-loading 1.5s infinite linear; }
+      .sk-btn { width: 100%; height: 30px; margin-top: auto; background: #eee; border-radius: 6px; animation: skeleton-loading 1.5s infinite linear; }
+
+      /* --- DARK MODE FIXES --- */
+      body.dark-mode .sk-container,
+      body.dark-mode .skeleton-card {
+          background: #222; border: 1px solid #333; box-shadow: none;
+      }
+      body.dark-mode .skeleton-pulse,
+      body.dark-mode .sk-img-rect,
+      body.dark-mode .sk-text-short,
+      body.dark-mode .sk-text-long,
+      body.dark-mode .sk-btn,
+      body.dark-mode #load-more-btn {
+          background-color: #333;
+          background-image: linear-gradient(90deg, #333, #444, #333);
+      }
+      body.dark-mode .modal-sheet { background: #1e1e1e !important; color: white; }
+      body.dark-mode .ad-desc-preview { color: #aaa; }
+      body.dark-mode #m-desc { color: #ccc !important; }
+  </style>
+</head>
+<body data-page="vendor-profile">
+
+  <script>
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark-mode');
+    }
+  </script>
+
+  <div class="app-container">
+    
+    <div class="header">
+      <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+      <span style="font-weight:bold;">Store Profile</span>
+    </div>
+
+    <div id="profile-skeleton">
+        <div class="sk-container">
+            <div class="skeleton-pulse sk-avatar"></div>
+            <div class="skeleton-pulse sk-title"></div>
+            <div class="skeleton-pulse sk-badge"></div>
+            <div class="skeleton-pulse sk-line"></div>
+            <div class="skeleton-pulse sk-line"></div>
+            <div class="skeleton-pulse sk-line-short"></div>
+            
+            <div class="skeleton-pulse sk-line-short" style="margin-top: 15px;"></div>
+
+            <div class="skeleton-pulse sk-btn-sm"></div>
+            <div style="display:flex; justify-content:center; gap:20px; margin-top:10px;">
+                <div class="skeleton-pulse" style="width:30px; height:30px; border-radius:50%;"></div>
+                <div class="skeleton-pulse" style="width:30px; height:30px; border-radius:50%;"></div>
+            </div>
+            
+            <div class="skeleton-pulse sk-line" style="margin-top:20px;"></div>
+        </div>
+        
+        <div class="skeleton-pulse sk-title" style="margin-left: 20px; margin-bottom: 15px; width: 40%;"></div>
+        
+        <div class="trending-grid">
+            <div class="skeleton-card"><div class="sk-img-rect"></div><div class="sk-text-short"></div><div class="sk-text-long"></div><div class="sk-btn"></div></div>
+            <div class="skeleton-card"><div class="sk-img-rect"></div><div class="sk-text-short"></div><div class="sk-text-long"></div><div class="sk-btn"></div></div>
+            <div class="skeleton-card"><div class="sk-img-rect"></div><div class="sk-text-short"></div><div class="sk-text-long"></div><div class="sk-btn"></div></div>
+            <div class="skeleton-card"><div class="sk-img-rect"></div><div class="sk-text-short"></div><div class="sk-text-long"></div><div class="sk-btn"></div></div>
+        </div>
+    </div>
+
+    <div id="profile-content">
+        <section class="profile-section">
+            <img id="p-img" src="img/person.png" alt="Vendor Logo" class="profile-img">
+            
+            <div class="business-name">
+                <span id="p-name"></span> 
+                <span id="p-badge"></span>
+            </div>
+            
+            <div style="margin-bottom: 8px;">
+                <span id="p-id" style="background:#eee; color:#555; font-size:10px; padding:2px 8px; border-radius:10px; font-family:monospace; font-weight:bold;">
+                ID: ...
+                </span>
+            </div>
+
+            <p id="p-desc" class="business-description">
+                </p>
+
+            <div style="font-size: 12px; color: #555; margin: 10px 0; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <span><i class="far fa-clock" style="color:#2d8eff;"></i> <span id="p-hours">Checking...</span></span>
+                <span id="shop-status" style="font-weight: bold; font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #eee; color: #777;">
+                    ...
+                </span>
+            </div>
+
+            <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 12px; align-items: center;">
+                
+                <button id="btn-manage" onclick="window.location.href='dashboard.html'" 
+                    style="display:none; width: 100%; max-width: 240px; background: #6c5ce7; color: white; border: none; padding: 12px; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);">
+                    <i class="fas fa-store"></i> Manage My Shop
+                </button>
+
+                <a id="btn-contact" href="#" class="chat-btn" 
+                   style="width: 100%; max-width: 135px; background: #25D366; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: bold;">
+                    <i class="fab fa-whatsapp"></i> Contact Shop
+                </a>
+
+                <div style="display: flex; gap: 20px; margin-top: 5px;">
+                    <a id="link-phone" href="#" style="color:#333;"><i class="fas fa-phone-alt fa-lg"></i></a>
+                    <a id="link-insta" href="#" style="color:#E1306C; display:none;"><i class="fab fa-instagram fa-lg"></i></a>
+                    <button onclick="shareVendor()" style="background:none; border:none; color:#2d8eff; cursor:pointer; font-size: 16px;"><i class="fas fa-share-alt"></i></button>
+                </div>
+            </div>
+
+            <div class="business-meta" style="margin-top: 20px;">
+                <span><i class="fas fa-map-marker-alt"></i> <span id="p-location">Location</span></span>
+                <span><i class="fas fa-user-shield"></i> Joined: <span id="p-date">Date</span></span>
+            </div>
+            
+            <div style="margin-top: 15px; display: flex; gap: 20px; justify-content: center;">
+                <a href="reviews/" style="color: #2d8eff; font-size: 12px; text-decoration: none; font-weight: 600;">
+                    <i class="far fa-star"></i> Drop a Review
+                </a>
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSfy6SsEKGXykaneoLbGFatxtmAMgsemonogQaGqkFK-B9mxuA/viewform?usp=header" style="color: #d9534f; font-size: 12px; text-decoration: none;">
+                    <i class="fas fa-flag"></i> Report Vendor
+                </a>
+            </div>
+        </section>
+
+        <h2 class="products-title">Items from this Store</h2>
+        
+        <div class="trending-grid" id="vendor-grid">
+            </div>
+
+        <div id="load-more-container" style="display: none;">
+            <button id="load-more-btn" onclick="renderBatch()">Load More</button>
+        </div>
+    </div>
+
+    <div id="detail-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; justify-content:center; align-items:end;">
+        <div class="modal-sheet">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <h3 id="m-title" style="margin:0; font-size:18px; width:90%; line-height:1.3;">...</h3>
+                <button onclick="document.getElementById('detail-modal').style.display='none'" style="background:none; border:none; font-size:24px; color:#555; cursor:pointer;">&times;</button>
+            </div>
+            <p id="m-price" style="color:#2d8eff; font-weight:bold; font-size:20px; margin:10px 0;">...</p>
+            
+            <div style="max-height:200px; overflow-y:auto; margin-bottom:20px; background:#f9f9f9; padding:10px; border-radius:10px;">
+                 <p id="m-desc" style="color:#555; font-size:14px; line-height:1.5; margin:0;">...</p>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                 <span id="m-category" style="font-size:12px; color:#888; font-weight:bold;"></span>
+            </div>
+
+            <a id="m-btn" href="#" target="_blank" class="chat-btn" style="width:100%; text-align:center; display:block; padding:15px; border-radius:10px;">
+                <i class="fab fa-whatsapp"></i> Chat with Vendor
+            </a>
+        </div>
+    </div>
+
+    <div id="error-message" style="display:none; text-align:center; padding:50px;">
+        <i class="fas fa-exclamation-circle" style="font-size:40px; color:#ccc;"></i>
+        <h3 style="margin-top:10px; color:#555;">Vendor Not Found</h3>
+        <p style="color:#888;">This vendor ID does not exist.</p>
+        <a href="index.html" class="chat-btn" style="display:inline-block; margin-top:10px; background:#2d8eff;">Go Home</a>
+    </div>
+
+    <footer class="site-footer">
+        <p style="margin-top:20px; color:#777; font-size: 12px;">
+    &copy; 2026 All rights reserved. Powered by 
+    <a href="https://brightsitedev.tech" target="_blank" style="color:#2d8eff; text-decoration:none; font-weight:bold;">Brightsitedev</a>
+</p>
+    </footer>
+  </div>
+
+  <script src="asset/script.js"></script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, getDoc, query, where } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+        authDomain: "afit-market-auth.firebaseapp.com",
+        projectId: "afit-market-auth",
+        storageBucket: "afit-market-auth.firebasestorage.app",
+        messagingSenderId: "894920886640",
+        appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let savedItemIds = new Set();
+    let currentUserEmail = null; 
+    let pageVendorEmail = null; 
+    let currentVendorPhone = "";
+    
+    // --- PAGINATION VARIABLES ---
+    let allVendorProducts = []; 
+    let currentProductIndex = 0; 
+    const BATCH_SIZE = 16; 
+
+    const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+    const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
+    const ADMIN_PHONE = "2348144516127"; 
+
+    function escapeHTML(str) {
+        if (!str) return "";
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUserEmail = user.email.toLowerCase().trim();
+            checkOwner();
+            try {
+                const querySnapshot = await getDocs(collection(db, "users", user.uid, "saved_items"));
+                savedItemIds.clear();
+                querySnapshot.forEach((doc) => { savedItemIds.add(doc.id); });
+                updateHeartIcons(); 
+            } catch (e) { console.error("Error loading wishlist:", e); }
+        }
+    });
+
+    function checkOwner() {
+        if (currentUserEmail && pageVendorEmail && currentUserEmail === pageVendorEmail) {
+            const manageBtn = document.getElementById('btn-manage');
+            if(manageBtn) manageBtn.style.display = 'block';
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        window.renderBatch = renderBatch;
+
+        const params = new URLSearchParams(window.location.search);
+        let vendorID = params.get('vendor');
+        if(vendorID) {
+            vendorID = vendorID.trim();
+            loadProfile(vendorID);
+        } else {
+            showError("Missing Vendor ID", "The link is broken. No ID found.");
+        }
+    });
+
+    // --- 🔵 UPDATED: DUAL SHEET FETCH ---
+    function loadProfile(id) {
+        // First check if suspended in Firestore
+        getDoc(doc(db, "vendor_status", id)).then(docSnap => {
+            if (docSnap.exists() && docSnap.data().status === "suspended") {
+                document.getElementById('profile-skeleton').style.display = 'none'; 
+                document.getElementById('profile-content').style.display = 'none';
+                document.getElementById('error-message').style.display = 'block';
+                return;
+            }
+
+            // Fetch BOTH sheets simultaneously
+            Promise.all([
+                fetch(`${apiRoot}/Vendors`).then(res => res.json()),
+                fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => [])) // Catch empty V2
+            ])
+            .then(([vendors1, vendors2]) => {
+                // Merge Data
+                const allVendors = [...vendors1, ...vendors2];
+                
+                // Find vendor in the combined list
+                const v = allVendors.find(item => (item.vendor_id || item.Vendor_ID) === id);
+                
+                if(!v) { 
+                    showError("Vendor Not Found", `ID "${id}" does not exist.`); 
+                } else {
+                    // Check if verify is FALSE (from V2 sheet logic)
+                    const isVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
+                    if(isVerified === "false") {
+                        showError("Pending Approval", "This vendor profile is awaiting verification.");
+                        return;
+                    }
+
+                    renderVendor(v, id);
+                    if (v.Email) { pageVendorEmail = v.Email.toLowerCase().trim(); checkOwner(); }
+                    
+                    document.getElementById('profile-skeleton').style.display = 'none';
+                    document.getElementById('profile-content').style.display = 'block';
+
+                    const rawPhone = v.whatsapp || v.Whatsapp || "";
+                    currentVendorPhone = String(rawPhone).replace(/[^0-9]/g, '');
+                    
+                    loadProducts(id); 
+                }
+            })
+            .catch(err => { 
+                console.error("Fetch Error:", err); 
+                showError("Connection Error", "Check your internet connection."); 
+            });
+        });
+    }
+
+    function renderVendor(v, id) {
+        const vName = v.business_name || v.Business_Name || v.name || v.Name || "Unknown";
+        document.title = `${vName} - Profile`;
+        document.getElementById('p-name').innerText = vName;
+        document.getElementById('p-id').innerText = `ID: ${id}`;
+        document.getElementById('p-desc').innerText = v.description || v.Description || "No description available.";
+        document.getElementById('p-location').innerText = v.location || v.Location || "AFIT Campus";
+        document.getElementById('p-date').innerText = v.date_joined || v.Date_Joined || "Recent";
+        let imgSrc = v.image || v.Image || "img/person.png"; if (!imgSrc.startsWith('http')) imgSrc = `img/${imgSrc}`;
+        document.getElementById('p-img').src = imgSrc;
+        const phone = v.whatsapp || v.Whatsapp || "";
+        document.getElementById('link-phone').href = `tel:${phone}`;
+        document.getElementById('btn-contact').href = `https://wa.me/${phone}`;
+        const instaLink = v.instagram || v.Instagram;
+        if(instaLink) { const insta = document.getElementById('link-insta'); insta.href = `https://instagram.com/${instaLink}`; insta.style.display = 'inline-block'; }
+        
+        let status = String(v.verified || v.Verified || "").toLowerCase().trim();
+        const badgeSpan = document.getElementById('p-badge');
+        if (status === "gold") badgeSpan.innerHTML = '<i class="fas fa-check-circle tick-gold"></i>';
+        else if (status === "blue") badgeSpan.innerHTML = '<i class="fas fa-check-circle tick-blue"></i>';
+        
+        const is247 = String(v.online_247 || v.Online_247 || "").toLowerCase().trim() === "true";
+        const statusBadge = document.getElementById('shop-status');
+        const hoursText = document.getElementById('p-hours');
+        if (is247) {
+            hoursText.innerText = "Digital Service (24/7)"; statusBadge.innerText = "🟢 Online 24/7"; statusBadge.className = "status-open";
+        } else {
+            const openTime = parseInt(v.open_time || v.Open_Time || 9); const closeTime = parseInt(v.close_time || v.Close_Time || 21);
+            const formatTime = (t) => { if(t === 12) return "12pm"; if(t === 24 || t === 0) return "12am"; return t > 12 ? (t - 12) + "pm" : t + "am"; };
+            hoursText.innerText = `Mon - Sat: ${formatTime(openTime)} - ${formatTime(closeTime)}`;
+            const now = new Date(); const currentHour = now.getHours(); const currentDay = now.getDay(); 
+            if (currentDay === 0) { statusBadge.innerText = "🔴 Closed (Sunday)"; statusBadge.className = "status-closed"; }
+            else if (currentHour >= openTime && currentHour < closeTime) { statusBadge.innerText = "🟢 Open Now"; statusBadge.className = "status-open"; }
+            else { statusBadge.innerText = "🔴 Closed Now"; statusBadge.className = "status-closed"; }
+        }
+    }
+
+    async function loadProducts(id) {
+        fetch(`${apiRoot}/Products`)
+        .then(res => res.json())
+        .then(async (sheetData) => {
+            const firestoreProducts = await loadVendorFirestoreItems(id);
+            const allProducts = [...sheetData, ...firestoreProducts];
+            
+            allVendorProducts = allProducts.filter(p => (p.vendor_id || p.Vendor_ID) === id);
+            
+            const grid = document.getElementById('vendor-grid');
+            grid.innerHTML = ""; 
+            
+            if(allVendorProducts.length === 0) { 
+                grid.innerHTML = "<p style='width:100%; text-align:center; padding:20px; color:#777;'>No items listed yet.</p>"; 
+                document.getElementById('load-more-container').style.display = 'none';
+                return; 
+            }
+            
+            renderBatch();
+        });
+    }
+
+    function renderBatch() {
+        const grid = document.getElementById('vendor-grid');
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        const loadMoreContainer = document.getElementById('load-more-container');
+
+        const nextIndex = currentProductIndex + BATCH_SIZE;
+        const productsToShow = allVendorProducts.slice(currentProductIndex, nextIndex);
+
+        productsToShow.forEach(p => {
+            const pName = p.name || p.Name; 
+            const pPrice = p.price || p.Price; 
+            const pCategory = p.category || p.Category; 
+            const pImage = p.image || p.Image;
+            const pStatus = p.status || p.Status || "Active"; 
+            const isFeatured = p.is_featured === "true"; 
+            const pDesc = p.description || p.Description || "No additional details.";
+            
+            const pID = p.id || (p.vendor_id + "-" + pName).replace(/\s+/g, '-').toLowerCase();
+            let pImg = pImage || "logo-blue.png"; 
+            if (!pImg.startsWith('http')) pImg = `img/${pImg}`;
+            
+            const isSaved = savedItemIds.has(pID); 
+            const heartClass = isSaved ? 'fas' : 'far'; 
+            const heartColor = isSaved ? '#ff4757' : '#777';
+
+            const isSold = pStatus === "Sold";
+            const opacity = isSold ? 'opacity:0.6;' : '';
+            let badge = '';
+            if (isSold) badge = '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>';
+            else if (isFeatured) badge = '<span style="background:#f1c40f; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10; font-weight:bold;">⭐ Sponsored</span>';
+
+            const safeNameJS = pName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            const safeDescJS = pDesc.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+
+            const btnText = isSold ? "Sold" : "Get Item";
+            const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
+            const btnAction = isSold ? "" : `openDetailModal('${safeNameJS}', '${escapeHTML(pPrice)}', '${safeDescJS}', '${escapeHTML(pCategory)}')`;
+
+            grid.innerHTML += `
+            <div class="ad-card" style="position:relative; ${opacity}">
+                ${badge}
+                <button onclick="toggleSave('${pID}', '${safeNameJS}', '${pPrice}', '${pImage}', '${p.vendor_id || p.Vendor_ID}')" class="save-btn" id="save-${pID}" style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i></button>
+                
+                <img class="ad-img" src="${pImg}" alt="${escapeHTML(pName)}" onerror="this.src='img/logo-blue.png'">
+                
+                <div class="ad-info">
+                    <div class="ad-price">${escapeHTML(pPrice)}</div>
+                    <div class="ad-title">${escapeHTML(pName)}</div>
+                    <div class="ad-desc-preview">${escapeHTML(pDesc)}</div>
+                    <div class="ad-location">Category: ${escapeHTML(pCategory)}</div>
+                    <button onclick="${btnAction}" class="chat-btn" style="width:100%; margin-top:5px; border:none; cursor:pointer; ${btnStyle}">${btnText}</button>
+                </div>
+            </div>`;
+        });
+
+        currentProductIndex = nextIndex;
+
+        if (currentProductIndex >= allVendorProducts.length) {
+            loadMoreContainer.style.display = 'none'; 
+        } else {
+            loadMoreContainer.style.display = 'block'; 
+            loadMoreBtn.innerText = "Load More"; 
+        }
+    }
+
+    window.openDetailModal = function(title, price, desc, category) {
+        document.getElementById('m-title').innerText = title;
+        document.getElementById('m-price').innerText = price;
+        document.getElementById('m-desc').innerText = desc;
+        document.getElementById('m-category').innerText = "Category: " + category;
+        
+        const waMsg = encodeURIComponent(`Hi, I saw "${title}" on AFIT Market (Price: ${price}). Is it available?`);
+        document.getElementById('m-btn').href = `https://wa.me/${currentVendorPhone}?text=${waMsg}`;
+        
+        document.getElementById('detail-modal').style.display = 'flex';
+    };
+
+    async function loadVendorFirestoreItems(vid) {
+        try {
+            const q = query(collection(db, "products"), where("vendor_id", "==", vid));
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch(e) { console.error("Firestore Error:", e); return []; }
+    }
+
+    function showError(title, msg) {
+        document.getElementById('profile-skeleton').style.display = 'none'; 
+        const errorBox = document.getElementById('error-message');
+        errorBox.style.display = 'block';
+        errorBox.querySelector('h3').innerText = title;
+        errorBox.querySelector('p').innerText = msg;
+    }
+    
+    window.shareVendor = function() {
+        if (navigator.share) { navigator.share({ title: document.title, url: window.location.href }); } else { alert("Link copied!"); }
+    }
+
+    window.toggleSave = async function(id, name, price, image, vendor) {
+        const user = auth.currentUser;
+        if (!user) { if(confirm("You need to sign in to save items. Go to login page?")) { window.location.href = "login.html"; } return; }
+        const userRef = doc(db, "users", user.uid, "saved_items", id);
+
+        if (savedItemIds.has(id)) {
+            savedItemIds.delete(id); await deleteDoc(userRef);
+        } else {
+            savedItemIds.add(id);
+            await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() });
+        }
+        updateHeartIcons();
+    };
+
+    function updateHeartIcons() {
+        document.querySelectorAll('.save-btn').forEach(btn => {
+            const id = btn.id.replace('save-', '');
+            const icon = btn.querySelector('i');
+            if (savedItemIds.has(id)) {
+                icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
+            } else {
+                icon.classList.replace('fas', 'far'); icon.style.color = '#777';
+            }
+        });
+    }
+</script>
+</body>
+</html>

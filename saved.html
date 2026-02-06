@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Items - AFIT Digital Market</title>
+    
+    <link rel="stylesheet" href="asset/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="img/app-logo.png">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+  <style>
+      /* LOAD MORE BUTTON */
+      #load-more-container { text-align: center; margin: 20px 0 40px; display: none; }
+      #load-more-btn {
+          background: #333; color: white; border: none; padding: 10px 25px;
+          border-radius: 30px; font-weight: bold; cursor: pointer;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: transform 0.2s;
+      }
+      #load-more-btn:active { transform: scale(0.95); }
+      body.dark-mode #load-more-btn { background: #444; }
+
+      /* --- TEXT & MODAL STYLES --- */
+      .ad-title {
+          white-space: normal !important;
+          line-height: 1.3;
+          height: auto !important;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          margin-bottom: 5px;
+      }
+      .ad-desc-preview {
+          font-size: 11px; color: #888;
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+          margin-bottom: 8px;
+      }
+
+      @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+      .modal-sheet {
+          background: white; width: 100%; max-width: 500px;
+          border-radius: 20px 20px 0 0; padding: 25px;
+          animation: slideUp 0.3s ease-out;
+          position: relative;
+      }
+
+      /* Dark Mode Fixes */
+      body.dark-mode .modal-sheet { background: #1e1e1e !important; color: white; }
+      body.dark-mode .ad-desc-preview { color: #aaa; }
+      body.dark-mode #m-desc { color: #ccc !important; }
+
+      /* --- SKELETON LOADING STYLES --- */
+      @keyframes skeleton-loading {
+          0% { background-position: -200px 0; }
+          100% { background-position: calc(200px + 100%) 0; }
+      }
+
+      .skeleton-card {
+          background: #fff;
+          border-radius: 10px;
+          padding: 10px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          height: 220px;
+          position: relative;
+      }
+
+      .sk-img-rect { width: 100%; height: 120px; border-radius: 8px; background: #eee; background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee); background-size: 200px 100%; animation: skeleton-loading 1.5s infinite linear; }
+      .sk-text-short { width: 40%; height: 15px; background: #eee; background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee); background-size: 200px 100%; border-radius: 4px; animation: skeleton-loading 1.5s infinite linear; }
+      .sk-text-long { width: 90%; height: 15px; background: #eee; background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee); background-size: 200px 100%; border-radius: 4px; animation: skeleton-loading 1.5s infinite linear; }
+      .sk-btn { width: 100%; height: 30px; margin-top: auto; background: #eee; background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee); background-size: 200px 100%; border-radius: 6px; animation: skeleton-loading 1.5s infinite linear; }
+
+      /* 🆕 DARK MODE SKELETON FIXES */
+      body.dark-mode .skeleton-card {
+          background: #1e1e1e;
+          box-shadow: 0 2px 10px rgba(255,255,255,0.05);
+      }
+      body.dark-mode .sk-img-rect,
+      body.dark-mode .sk-text-short,
+      body.dark-mode .sk-text-long,
+      body.dark-mode .sk-btn {
+          background: #333;
+          background-image: linear-gradient(90deg, #333, #444, #333);
+      }
+  </style>
+</head>
+<body data-page="saved">
+
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+
+    <div class="app-container">
+        <div class="header">
+            <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+            <span style="font-weight:bold;">Saved Items</span>
+             <div class="notification-icon-box" id="theme-toggle" style="margin-left:auto;">
+                <i class="fas fa-moon"></i>
+            </div>
+        </div>
+
+        <div id="saved-skeleton" class="trending-grid" style="padding: 15px;">
+            <div class="skeleton-card"><div class="sk-img-rect"></div><div class="sk-text-short"></div><div class="sk-text-long"></div><div class="sk-btn"></div></div>
+            <div class="skeleton-card"><div class="sk-img-rect"></div><div class="sk-text-short"></div><div class="sk-text-long"></div><div class="sk-btn"></div></div>
+        </div>
+
+        <div id="saved-grid" class="trending-grid" style="padding: 15px; display:none;">
+        </div>
+
+        <div id="load-more-container">
+            <button id="load-more-btn">Load More</button>
+        </div>
+
+        <div id="empty-state" style="display:none; text-align:center; padding:50px; color:#888;">
+            <i class="far fa-heart" style="font-size:40px; margin-bottom:15px; opacity:0.5;"></i>
+            <p>You haven't saved any items yet.</p>
+            <a href="index.html" class="chat-btn" style="display:inline-block; width:auto; margin-top:15px;">Start Shopping</a>
+        </div>
+    </div>
+
+    <div id="detail-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; justify-content:center; align-items:end;">
+        <div class="modal-sheet">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <h3 id="m-title" style="margin:0; font-size:18px; width:90%; line-height:1.3;">...</h3>
+                <button onclick="document.getElementById('detail-modal').style.display='none'" style="background:none; border:none; font-size:24px; color:#555; cursor:pointer;">&times;</button>
+            </div>
+            <p id="m-price" style="color:#2d8eff; font-weight:bold; font-size:20px; margin:10px 0;">...</p>
+            
+            <div style="max-height:200px; overflow-y:auto; margin-bottom:20px; background:#f9f9f9; padding:10px; border-radius:10px;">
+                 <p id="m-desc" style="color:#555; font-size:14px; line-height:1.5; margin:0;">...</p>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                 <span id="m-vendor" style="font-size:12px; color:#888; font-weight:bold;"></span>
+            </div>
+
+            <a id="m-btn" href="#" target="_blank" class="chat-btn" style="width:100%; text-align:center; display:block; padding:15px; border-radius:10px;">
+                <i class="fab fa-whatsapp"></i> Chat with Vendor
+            </a>
+        </div>
+    </div>
+
+    <script src="asset/script.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, deleteDoc, query, limit, startAfter, orderBy, getDoc } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+            authDomain: "afit-market-auth.firebaseapp.com",
+            projectId: "afit-market-auth",
+            storageBucket: "afit-market-auth.firebasestorage.app",
+            messagingSenderId: "894920886640",
+            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+        const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
+        const ADMIN_PHONE = "2348144516127";
+        
+        let globalPhoneBook = {};
+        let masterProductList = []; // Stores ALL products to find descriptions
+
+        // PAGINATION VARS
+        let lastVisibleDoc = null;
+        let isFetching = false;
+        const BATCH_SIZE = 10;
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Load Master Data First
+                loadMasterData().then(() => {
+                    loadNextBatch(user.uid);
+                });
+                
+                document.getElementById('load-more-btn').addEventListener('click', () => {
+                    loadNextBatch(user.uid);
+                });
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        // 2. FETCH EVERYTHING (Vendors + Products) to enable "Smart" Saved Page
+        async function loadMasterData() {
+            try {
+                // Fetch Vendors
+                const vRes = await fetch(`${apiRoot}/Vendors`);
+                const vendors = await vRes.json();
+                vendors.forEach(v => {
+                    const vID = v.vendor_id || v.Vendor_ID;
+                    const vPhone = v.whatsapp || v.Whatsapp;
+                    if(vID) globalPhoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
+                });
+
+                // Fetch Sheet Products
+                const pRes = await fetch(`${apiRoot}/Products`);
+                const sheetProds = await pRes.json();
+                
+                // Fetch Firestore Products
+                const q = query(collection(db, "products"));
+                const snap = await getDocs(q);
+                const fireProds = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // Combine them
+                masterProductList = [...sheetProds, ...fireProds];
+
+            } catch (err) { console.error("Error loading master data:", err); }
+        }
+
+        // 3. Fetch Saved Items (Paginated)
+        async function loadNextBatch(uid) {
+            if (isFetching) return;
+            isFetching = true;
+
+            const grid = document.getElementById('saved-grid');
+            const skeleton = document.getElementById('saved-skeleton');
+            const emptyState = document.getElementById('empty-state');
+            const loadBtnDiv = document.getElementById('load-more-container');
+            const loadBtn = document.getElementById('load-more-btn');
+
+            loadBtn.innerText = "Loading...";
+
+            try {
+                let q;
+                const colRef = collection(db, "users", uid, "saved_items");
+
+                if (lastVisibleDoc) {
+                    q = query(colRef, limit(BATCH_SIZE), startAfter(lastVisibleDoc));
+                } else {
+                    q = query(colRef, limit(BATCH_SIZE));
+                }
+
+                const querySnapshot = await getDocs(q);
+                
+                if(!lastVisibleDoc) skeleton.style.display = 'none';
+
+                if (querySnapshot.empty) {
+                    loadBtnDiv.style.display = 'none'; 
+                    if (!lastVisibleDoc) emptyState.style.display = 'block'; 
+                    isFetching = false;
+                    return;
+                }
+
+                lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+                grid.style.display = 'grid';
+
+                for (const docSnap of querySnapshot.docs) {
+                    const savedData = docSnap.data();
+                    const pID = docSnap.id; // The ID saved in Firestore
+                    
+                    // MAGIC: Look for the real item in our Master List
+                    // We check if the ID matches OR if we can reconstruct the ID
+                    let liveItem = masterProductList.find(p => p.id === pID);
+                    
+                    // If not found by direct ID, try the ID generation logic used in other files
+                    if (!liveItem) {
+                        liveItem = masterProductList.find(p => {
+                            const genID = (p.id || ((p.vendor_id||p.Vendor_ID) + "-" + (p.name||p.Name)).replace(/\s+/g, '-').toLowerCase());
+                            return genID === pID;
+                        });
+                    }
+
+                    // Use Live Data if available, otherwise fallback to Saved Data
+                    const pName = liveItem ? (liveItem.name || liveItem.Name) : savedData.name;
+                    const pPrice = liveItem ? (liveItem.price || liveItem.Price) : savedData.price;
+                    const pVendor = liveItem ? (liveItem.vendor_id || liveItem.Vendor_ID) : savedData.vendor;
+                    let pImage = liveItem ? (liveItem.image || liveItem.Image) : savedData.image;
+                    // GET DESCRIPTION (Live or Fallback)
+                    let pDesc = liveItem ? (liveItem.description || liveItem.Description) : savedData.description;
+                    if(!pDesc) pDesc = "No description available.";
+
+                    const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
+                    const vendorPhone = globalPhoneBook[pVendor] || ADMIN_PHONE;
+                    
+                    const safeName = String(pName).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                    const safeDesc = String(pDesc).replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+                    const safePrice = String(pPrice).replace(/'/g, "\\'");
+
+                    const btnAction = `openDetailModal('${safeName}', '${safePrice}', '${safeDesc}', '${pVendor}', '${vendorPhone}')`;
+
+                    grid.innerHTML += `
+                    <div class="ad-card" id="card-${pID}" style="position:relative;">
+                        <button onclick="removeSavedItem('${pID}')" 
+                                style="position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.9); border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.1); z-index:10;">
+                            <i class="fas fa-trash-alt" style="color:#ff4757; font-size:14px;"></i>
+                        </button>
+                        <img class="ad-img" src="${img}" alt="${safeName}" onerror="this.src='img/logo-blue.png'">
+                        <div class="ad-info">
+                            <div class="ad-price">${pPrice}</div>
+                            <div class="ad-title">${pName}</div>
+                            <div class="ad-desc-preview">${pDesc}</div>
+                            <div class="ad-location">Vendor: ${pVendor}</div>
+                            <button onclick="${btnAction}" class="chat-btn" style="width:100%; border:none; margin-top:5px; cursor:pointer;">Get Item</button>
+                        </div>
+                    </div>`;
+                }
+
+                if (querySnapshot.size < BATCH_SIZE) {
+                    loadBtnDiv.style.display = 'none';
+                } else {
+                    loadBtnDiv.style.display = 'block';
+                    loadBtn.innerText = "Load More";
+                }
+
+            } catch (err) {
+                console.error("Error loading items:", err);
+                if(!lastVisibleDoc) grid.innerHTML = "<p style='width:100%; text-align:center;'>Error loading items.</p>";
+            }
+            isFetching = false;
+        }
+
+        // FUNCTION TO OPEN MODAL
+        window.openDetailModal = function(title, price, desc, vendor, phone) {
+            document.getElementById('m-title').innerText = title;
+            document.getElementById('m-price').innerText = price;
+            document.getElementById('m-desc').innerText = desc;
+            document.getElementById('m-vendor').innerText = "Vendor: " + vendor;
+            
+            const waMsg = encodeURIComponent(`Hi, I saw "${title}" on AFIT Market (Price: ${price}). Is it available?`);
+            document.getElementById('m-btn').href = `https://wa.me/${phone}?text=${waMsg}`;
+            
+            document.getElementById('detail-modal').style.display = 'flex';
+        };
+
+        window.removeSavedItem = async function(docID) {
+            if(!confirm("Remove this item?")) return;
+            const user = auth.currentUser;
+            if(!user) return;
+
+            const card = document.getElementById(`card-${docID}`);
+            if(card) card.style.opacity = "0.5";
+
+            try {
+                await deleteDoc(doc(db, "users", user.uid, "saved_items", docID));
+                if(card) {
+                    card.style.transform = "scale(0)";
+                    setTimeout(() => card.remove(), 300);
+                }
+            } catch (err) {
+                alert("Could not remove item. Check connection.");
+                if(card) card.style.opacity = "1";
+            }
+        }
+    </script>
+</body>
+</html>

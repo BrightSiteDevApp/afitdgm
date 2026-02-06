@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Page Not Found | AFIT Digital Market</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+ <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="img/app-logo.png">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+  <style>
+      .error-content {
+          text-align: center;
+          padding: 50px 20px;
+          min-height: 60vh;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+      }
+      .error-icon {
+          font-size: 80px;
+          color: #2d8eff;
+          margin-bottom: 20px;
+          opacity: 0.8;
+          animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+          100% { transform: translateY(0px); }
+      }
+      .error-title {
+          font-size: 24px;
+          font-weight: 800;
+          color: #333;
+          margin-bottom: 10px;
+      }
+      .error-text {
+          color: #777;
+          font-size: 14px;
+          margin-bottom: 30px;
+          max-width: 300px;
+          line-height: 1.5;
+      }
+      .link-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 15px;
+          width: 100%;
+          max-width: 350px;
+      }
+      .link-card {
+          background: white;
+          padding: 15px;
+          border-radius: 12px;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+          text-decoration: none;
+          color: #333;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          transition: transform 0.2s;
+          border: 1px solid #eee;
+      }
+      .link-card:active { transform: scale(0.95); }
+      .link-card i { font-size: 20px; color: #2d8eff; margin-bottom: 8px; }
+      .link-card span { font-size: 12px; font-weight: bold; }
+
+      /* Dark Mode Fixes */
+      body.dark-mode .error-title, 
+      body.dark-mode .link-card { color: #fff !important; }
+      body.dark-mode .link-card { background: #1e1e1e !important; border-color: #333 !important; }
+      body.dark-mode .error-text { color: #aaa !important; }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <div class="header" style="text-align: center;">
+      <a href="/"> <img src="/img/logo-white.png" alt="AFIT Market" class="site-logo" style="height:30px;"> </a>
+    </div>
+
+    <div class="error-content">
+        <i class="fas fa-map-signs error-icon"></i>
+        <div class="error-title">Oops! Page Not Found</div>
+        <p class="error-text">We couldn't find the page you were looking for. It might have been removed or the link is broken.</p>
+
+        <div class="link-grid">
+            <a href="/" class="link-card">
+                <i class="fas fa-home"></i>
+                <span>Home Page</span>
+            </a>
+            <a href="/items/" class="link-card">
+                <i class="fas fa-box-open"></i>
+                <span>All Items</span>
+            </a>
+            <a href="404.html" class="link-card">
+                <i class="fas fa-store"></i>
+                <span>Vendors</span>
+            </a>
+            <a href="https://wa.me/2349153375488" class="link-card">
+                <i class="fas fa-headset"></i>
+                <span>Support</span>
+            </a>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <p style="margin-top:20px; color:#777; font-size: 12px;">
+    &copy; 2026 All rights reserved. Powered by 
+    <a href="https://brightsitedev.tech" target="_blank" style="color:#2d8eff; text-decoration:none; font-weight:bold;">Brightsitedev</a>
+</p>
+    </footer>
+
+  </div>
+
+  <script>
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+    }
+  </script>
+
+</body>
+</html>

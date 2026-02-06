@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vendor Registration | AFIT Digital Market</title>
+    <link rel="stylesheet" href="asset/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="img/app-logo.png" type="image/png">
+    
+    <style>
+        body { 
+            background: #f0f2f5; 
+            padding-bottom: 50px; 
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+        }
+        
+        .header {
+            background: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        /* Flyer Section Styles */
+        .flyer-section {
+            width: 100%;
+            margin: 15px 0 25px; 
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+        .flyer-img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .reg-container { 
+            max-width: 600px; 
+            width: 92%; 
+            margin: 20px auto 30px; 
+            background: white; 
+            padding: 25px; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+            box-sizing: border-box;
+        }
+
+        .form-section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #2d8eff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 25px 0 15px;
+            border-bottom: 2px solid #f0f2f5;
+            padding-bottom: 5px;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        .form-label { font-size: 13px; font-weight: 600; color: #333; display: block; margin-bottom: 8px; }
+        .form-input { 
+            width: 100%; padding: 14px; border: 2px solid #eee; 
+            border-radius: 10px; font-size: 14px; transition: all 0.3s; 
+            box-sizing: border-box; background: #fafafa;
+            -webkit-appearance: none;
+        }
+        .form-input:focus { border-color: #2d8eff; background: white; outline: none; }
+
+        /* Bank Card Styles */
+        .bank-card {
+            background: #fff; 
+            border: 1px solid #f39c12; 
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .bank-card::before {
+            content: "";
+            position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+            background: #f39c12;
+        }
+        .bank-title { 
+            font-weight: 700; color: #333; font-size: 14px; 
+            margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .acct-box { 
+            background: #fafafa; 
+            padding: 10px; 
+            border-radius: 8px; 
+            margin: 10px 0; 
+            border: 1px dashed #ddd; 
+        }
+        .acct-num { 
+            font-size: 20px; 
+            font-weight: 800; 
+            letter-spacing: 1px; 
+            display: block; 
+            color: #2d3436; 
+        }
+        .bank-name { font-size: 11px; color: #777; font-weight: bold; text-transform: uppercase;}
+        .acct-name { font-size: 12px; font-weight: 600; margin-top: 4px; color: #555; }
+        
+        .warning-text { 
+            color: #d63031; 
+            font-size: 11px; 
+            font-weight: 600; 
+            margin-top: 8px; 
+            padding: 8px;
+            background: #fff5f5;
+            border-radius: 6px;
+        }
+
+        /* Category Grid */
+        .category-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .cat-option { display: none; }
+        .cat-label {
+            padding: 10px 16px; background: #f0f2f5; border-radius: 25px;
+            font-size: 12px; font-weight: 600; color: #555; cursor: pointer;
+            transition: all 0.2s; border: 1px solid transparent; user-select: none;
+        }
+        .cat-option:checked + .cat-label { background: #e7f3ff; color: #2d8eff; border-color: #2d8eff; }
+
+        /* File Upload */
+        .file-upload-box {
+            border: 2px dashed #ccc; border-radius: 12px; padding: 25px;
+            text-align: center; cursor: pointer; transition: 0.3s; position: relative;
+            background: #fafafa;
+        }
+        .file-upload-box:active { background: #f0f8ff; border-color: #2d8eff; }
+        .file-upload-box input { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; }
+        .upload-icon { font-size: 28px; color: #aaa; margin-bottom: 8px; }
+        .upload-text { font-size: 12px; color: #777; }
+        .upload-status { font-size: 11px; color: #2d8eff; margin-top: 5px; font-weight: bold; display: none; }
+
+        .time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        
+        .btn-submit { 
+            background: linear-gradient(135deg, #2d8eff, #0056b3); color: white; 
+            width: 100%; padding: 16px; border: none; border-radius: 12px; 
+            font-weight: 700; cursor: pointer; font-size: 16px; margin-top: 20px; 
+            box-shadow: 0 4px 15px rgba(45, 142, 255, 0.3); transition: transform 0.2s;
+        }
+        .btn-submit:active { transform: scale(0.98); }
+        .btn-submit:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+
+        /* Support Section Styles */
+        .support-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+        }
+        .support-title {
+            font-size: 13px;
+            color: #777;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .support-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .support-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px;
+            border-radius: 30px;
+            background: #25D366;
+            color: white;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3);
+            transition: transform 0.2s;
+        }
+        .support-btn:active { transform: scale(0.95); }
+
+        @media (max-width: 480px) {
+            .reg-container { padding: 20px; width: 95%; }
+            .time-grid { grid-template-columns: 1fr; gap: 10px; }
+            .cat-label { font-size: 11px; padding: 8px 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <a href="index.html" class="back-btn" style="text-decoration: none; color: #333; display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 600;">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        <span style="font-weight:bold; color: #333;">Vendor Registration</span>
+        <div style="width: 40px;"></div>
+    </div>
+
+    <div class="reg-container">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <img src="img/logo-blue.png" style="width: 60px; margin-bottom: 10px;">
+            <h2 style="margin: 0; color: #333; font-size: 22px;">Join AFIT Digital Market</h2>
+            <p style="color:#777; font-size:13px; margin-top: 5px;">Expand your business to thousands of students.</p>
+        </div>
+
+        <div class="bank-card">
+            <div class="bank-title">Payment Required</div>
+            <p style="font-size: 12px; color: #555; margin-bottom: 10px;">Transfer the plan amount to:</p>
+            
+            <div class="acct-box">
+                <span class="acct-num">2070899768</span>
+                <span class="bank-name">KUDA MFB</span>
+                <div class="acct-name">IKHUORIA JOSEPH EROMOSELE</div>
+            </div>
+            
+            <div class="warning-text">
+                <i class="fas fa-info-circle"></i> Make transfer BEFORE filling form.
+            </div>
+        </div>
+
+        <div class="flyer-section">
+            <img src="https://i.ibb.co/FqH2cDnk/IMG-20260117-WA0008.jpg" alt="Vendor Plans Flyer" class="flyer-img" onerror="this.style.display='none'">
+        </div>
+
+        <form id="vendorForm" onsubmit="submitApplication(event)">
+            
+            <div class="form-section-title">Subscription</div>
+
+            <div class="form-group">
+                <label class="form-label">Select Your Plan</label>
+                <select id="v_plan" class="form-input" required>
+                    <option value="" disabled selected>-- Choose a Plan --</option>
+                    <option value="Essential Plan (N2,000)">Essential Plan - ₦2,000</option>
+                    <option value="Professional Plan (N3,500)">Professional Plan - ₦3,500</option>
+                    <option value="Executive Plan (N5,000)">Executive Plan - ₦5,000</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Ambassador ID (Optional)</label>
+                <input type="text" id="v_ambassador_id" class="form-input" placeholder="e.g. ADM-VA001">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Upload Payment Screenshot</label>
+                <div class="file-upload-box">
+                    <i class="fas fa-file-invoice-dollar upload-icon" style="color: #00b894;"></i>
+                    <div class="upload-text" id="lbl-payment">Tap to upload Receipt</div>
+                    <input type="file" id="v_payment" accept="image/*" required onchange="previewFile(this, 'lbl-payment')">
+                </div>
+                <div id="uploadStatus3" class="upload-status">Uploading...</div>
+            </div>
+
+            <div class="form-section-title">Personal Details</div>
+            
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" id="v_name" class="form-input" placeholder="Enter your full name" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" id="v_email" class="form-input" placeholder="active@email.com" required>
+            </div>
+
+            <div class="form-section-title">Business Details</div>
+
+            <div class="form-group">
+                <label class="form-label">Business Name</label>
+                <input type="text" id="v_business" class="form-input" placeholder="e.g. Tola Bakes" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">WhatsApp Number</label>
+                <input type="tel" id="v_whatsapp" class="form-input" placeholder="081..." required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Instagram Handle (Optional)</label>
+                <input type="text" id="v_instagram" class="form-input" placeholder="@yourhandle">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Business Description</label>
+                <textarea id="v_desc" class="form-input" style="height:100px; resize: none;" placeholder="Describe what you sell or offer..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Category (Select all that apply)</label>
+                <div class="category-grid" id="cat-container"></div>
+            </div>
+
+            <div class="form-section-title">Logistics & Availability</div>
+
+            <div class="form-group">
+                <label class="form-label">Location in AFIT</label>
+                <input type="text" id="v_location" class="form-input" placeholder="e.g. Ibrahim Alfa Hall / Off Campus" required>
+            </div>
+
+            <div class="time-grid">
+                <div class="form-group">
+                    <label class="form-label">Open Time</label>
+                    <input type="time" id="v_open" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Close Time</label>
+                    <input type="time" id="v_close" class="form-input">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Are you Online 24/7?</label>
+                <select id="v_online" class="form-input">
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                </select>
+            </div>
+
+            <div class="form-section-title">Verification & Branding</div>
+
+            <div class="form-group">
+                <label class="form-label">Business Logo / Profile Picture</label>
+                <div class="file-upload-box">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <div class="upload-text" id="lbl-profile">Tap to upload Logo</div>
+                    <input type="file" id="v_image" accept="image/*" required onchange="previewFile(this, 'lbl-profile')">
+                </div>
+                <div id="uploadStatus1" class="upload-status">Uploading...</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Student ID Card (Confidential)</label>
+                <div class="file-upload-box">
+                    <i class="fas fa-id-card upload-icon"></i>
+                    <div class="upload-text" id="lbl-idcard">Tap to upload ID Card</div>
+                    <input type="file" id="v_idcard" accept="image/*" required onchange="previewFile(this, 'lbl-idcard')">
+                </div>
+                <div id="uploadStatus2" class="upload-status">Uploading...</div>
+            </div>
+
+            <div class="terms-box">
+                <input type="checkbox" id="terms_check" required style="margin-top:2px;">
+                <label for="terms_check">
+                    I confirm that I have made the payment for the selected plan and the details provided are accurate.
+                </label>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn-submit">Submit Application</button>
+
+            <div class="support-section">
+                <p class="support-title">Need help with registration?</p>
+                <div class="support-grid">
+                    <a href="https://wa.me/2348144516127?text=I%20need%20help%20registering%20as%20a%20vendor" class="support-btn">
+                        <i class="fab fa-whatsapp"></i> Support 1
+                    </a>
+                    <a href="https://wa.me/2349153375488?text=I%20need%20help%20registering%20as%20a%20vendor" class="support-btn">
+                        <i class="fab fa-whatsapp"></i> Support 2
+                    </a>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyX6HGXNmSZO7_ewGvUN3zwcEL18FI5MCezh90cJMvQHg1IgKmLVS9-bKp0a0oc39Vfig/exec"; 
+        const IMGBB_KEY = "2ac38bef2c73c5a65e7ddf94efe37962";
+
+        const categories = [
+            "Phone", "Laptops", "Gadgets", "Fashion", "Fashion Accessories", "Phone Accessories",
+            "Appliances", "Food & Snacks", "Fragrance", "Hair Services", "Graphic Design",
+            "Lifestyle", "Nail Care", "Services", "Sport Kits"
+        ];
+
+        const catContainer = document.getElementById('cat-container');
+        categories.forEach(cat => {
+            catContainer.innerHTML += `
+                <input type="checkbox" name="category" value="${cat}" id="cat-${cat.replace(/\s+/g, '')}" class="cat-option">
+                <label for="cat-${cat.replace(/\s+/g, '')}" class="cat-label">${cat}</label>
+            `;
+        });
+
+        function previewFile(input, labelId) {
+            if (input.files && input.files[0]) {
+                document.getElementById(labelId).innerText = "✅ " + input.files[0].name;
+                document.getElementById(labelId).style.color = "#00b894";
+                document.getElementById(labelId).style.fontWeight = "bold";
+            }
+        }
+
+        async function uploadImage(file, statusId) {
+            const status = document.getElementById(statusId);
+            status.style.display = 'block';
+            status.innerText = "Uploading...";
+            const formData = new FormData();
+            formData.append("image", file);
+
+            try {
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
+                const data = await res.json();
+                status.innerText = "Upload Complete!";
+                status.style.color = "green";
+                return data.data.url;
+            } catch(e) {
+                status.innerText = "Upload Failed.";
+                status.style.color = "red";
+                throw e;
+            }
+        }
+
+        async function submitApplication(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerText = "Uploading Images (0/3)...";
+
+            try {
+                const profileFile = document.getElementById('v_image').files[0];
+                const idCardFile = document.getElementById('v_idcard').files[0];
+                const paymentFile = document.getElementById('v_payment').files[0];
+
+                btn.innerText = "Uploading Logo...";
+                const profileUrl = await uploadImage(profileFile, 'uploadStatus1');
+                
+                btn.innerText = "Uploading ID Card...";
+                const idCardUrl = await uploadImage(idCardFile, 'uploadStatus2');
+
+                btn.innerText = "Uploading Receipt...";
+                const paymentUrl = await uploadImage(paymentFile, 'uploadStatus3');
+
+                btn.innerText = "Submitting Data...";
+
+                const selectedCats = [];
+                document.querySelectorAll('input[name="category"]:checked').forEach(c => selectedCats.push(c.value));
+                
+                const formData = {
+                    name: document.getElementById('v_name').value,
+                    business_name: document.getElementById('v_business').value,
+                    email: document.getElementById('v_email').value,
+                    whatsapp: document.getElementById('v_whatsapp').value,
+                    instagram: document.getElementById('v_instagram').value,
+                    description: document.getElementById('v_desc').value,
+                    location: document.getElementById('v_location').value,
+                    open_time: document.getElementById('v_open').value,
+                    close_time: document.getElementById('v_close').value,
+                    online_247: document.getElementById('v_online').value,
+                    category: selectedCats.join(", "),
+                    image: profileUrl,
+                    id_card: idCardUrl,
+                    
+                    // NEW FIELDS
+                    subscription_plan: document.getElementById('v_plan').value,
+                    payment_proof: paymentUrl,
+                    ambassador_id: document.getElementById('v_ambassador_id').value
+                };
+
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                // ✅ UPDATED SUCCESS MESSAGE HERE
+                alert("Thank you for submitting your application! \n\nIt will be reviewed, and you will be contacted through WhatsApp and Email within 24 hours.");
+                window.location.href = "index.html";
+
+            } catch (error) {
+                console.error(error);
+                alert("Error submitting application. Please check your internet connection.");
+                btn.disabled = false;
+                btn.innerText = "Submit Application";
+            }
+        }
+    </script>
+    <script type="text/javascript">
+    (function(w,d,v3){
+    w.chaportConfig = {
+    appId : '695935cd783cb76f48a392a4',
+    };
+
+    if(w.chaport)return;v3=w.chaport={};v3._q=[];v3._l={};v3.q=function(){v3._q.push(arguments)};v3.on=function(e,fn){if(!v3._l[e])v3._l[e]=[];v3._l[e].push(fn)};var s=d.createElement('script');s.type='text/javascript';s.async=true;s.src='https://app.chaport.com/javascripts/insert.js';var ss=d.getElementsByTagName('script')[0];ss.parentNode.insertBefore(s,ss)})(window, document);
+    </script>
+</body>
+</html>
