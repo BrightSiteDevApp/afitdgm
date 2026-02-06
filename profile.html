@@ -1,28 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-     <script> 
-    (function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const isAdmin = localStorage.getItem('adm_dev_mode');
-
-        if (urlParams.get('access') === 'vendor') {
-            window.location.href = 'dashboard.html';
-            return; 
-        } 
-
-        if (urlParams.get('mode') === 'admin') {
-            localStorage.setItem('adm_dev_mode', 'true');
-            alert("✅ Developer Mode Unlocked!");
-            return;
-        }
-
-        if (!isAdmin) {
-            window.location.href = 'coming-soon.html'; 
-        }
-    })(); 
-    </script>
-    
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
   <script>
     window.dataLayer = window.dataLayer || [];

@@ -1,27 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script> 
-    (function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const isAdmin = localStorage.getItem('adm_dev_mode');
-
-        if (urlParams.get('access') === 'vendor') {
-            window.location.href = 'dashboard.html';
-            return; 
-        } 
-
-        if (urlParams.get('mode') === 'admin') {
-            localStorage.setItem('adm_dev_mode', 'true');
-            alert("✅ Developer Mode Unlocked!");
-            return;
-        }
-
-        if (!isAdmin) {
-            window.location.href = 'coming-soon.html'; 
-        }
-    })(); 
-    </script>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
