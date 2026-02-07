@@ -17,9 +17,8 @@
   <link rel="stylesheet" href="asset/style.css">
   
   <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
-    <link rel="apple-touch-icon" href="img/app-logo.png">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
       /* Hide content until loaded */
@@ -231,7 +230,7 @@
 
             <div class="business-meta" style="margin-top: 20px;">
                 <span><i class="fas fa-map-marker-alt"></i> <span id="p-location">Location</span></span>
-                <span><i class="fas fa-user-shield"></i> Joined: <span id="p-date">Date</span></span>
+                <span><i class="fas fa-user-shield"></i> Joined: <span id="p-date">2026</span></span>
             </div>
             
             <div style="margin-top: 15px; display: flex; gap: 20px; justify-content: center;">
@@ -293,184 +292,168 @@
 
   <script src="asset/script.js"></script>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, getDoc, query, where } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
-        authDomain: "afit-market-auth.firebaseapp.com",
-        projectId: "afit-market-auth",
-        storageBucket: "afit-market-auth.firebasestorage.app",
-        messagingSenderId: "894920886640",
-        appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    let savedItemIds = new Set();
-    let currentUserEmail = null; 
-    let pageVendorEmail = null; 
-    let currentVendorPhone = "";
+  <script>
+    // --- SUPABASE CONFIG ---
+    const supabaseUrl = "https://mofdxngxakijeokaylwt.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vZmR4bmd4YWtpamVva2F5bHd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyNzYyMjAsImV4cCI6MjA4NDg1MjIyMH0.PqyNGp7Yp01ScCMDr4ta6GQPVqxa6A476Lz9cYKj3dE";
     
-    // --- PAGINATION VARIABLES ---
+    // Use 'sbClient' to prevent conflicts
+    const sbClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Global Vars
+    let savedItemIds = new Set();
+    let currentVendorPhone = "";
+    let activeUser = null;
+    let vendorEmail = "";
+    
+    // Pagination
     let allVendorProducts = []; 
     let currentProductIndex = 0; 
     const BATCH_SIZE = 16; 
 
-    const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
-    const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
-    const ADMIN_PHONE = "2348144516127"; 
-
-    function escapeHTML(str) {
-        if (!str) return "";
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            currentUserEmail = user.email.toLowerCase().trim();
-            checkOwner();
-            try {
-                const querySnapshot = await getDocs(collection(db, "users", user.uid, "saved_items"));
-                savedItemIds.clear();
-                querySnapshot.forEach((doc) => { savedItemIds.add(doc.id); });
-                updateHeartIcons(); 
-            } catch (e) { console.error("Error loading wishlist:", e); }
-        }
-    });
-
-    function checkOwner() {
-        if (currentUserEmail && pageVendorEmail && currentUserEmail === pageVendorEmail) {
-            const manageBtn = document.getElementById('btn-manage');
-            if(manageBtn) manageBtn.style.display = 'block';
-        }
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
+    // --- INITIALIZATION ---
+    document.addEventListener("DOMContentLoaded", async () => {
         window.renderBatch = renderBatch;
 
+        // 1. GET USER
+        const localData = localStorage.getItem('user_data');
+        if(localData) {
+            activeUser = JSON.parse(localData);
+            loadSavedItems();
+        } else {
+            const { data: { user } } = await sbClient.auth.getUser();
+            if(user) {
+                activeUser = user;
+                loadSavedItems();
+            }
+        }
+
+        // 2. GET VENDOR ID FROM URL
         const params = new URLSearchParams(window.location.search);
-        let vendorID = params.get('vendor');
-        if(vendorID) {
-            vendorID = vendorID.trim();
-            loadProfile(vendorID);
+        let vendorDisplayID = params.get('vendor');
+        
+        if(vendorDisplayID) {
+            vendorDisplayID = vendorDisplayID.trim();
+            loadProfile(vendorDisplayID);
         } else {
             showError("Missing Vendor ID", "The link is broken. No ID found.");
         }
     });
 
-    // --- 🔵 UPDATED: DUAL SHEET FETCH ---
-    function loadProfile(id) {
-        // First check if suspended in Firestore
-        getDoc(doc(db, "vendor_status", id)).then(docSnap => {
-            if (docSnap.exists() && docSnap.data().status === "suspended") {
-                document.getElementById('profile-skeleton').style.display = 'none'; 
-                document.getElementById('profile-content').style.display = 'none';
-                document.getElementById('error-message').style.display = 'block';
+    // --- FETCH PROFILE ---
+    async function loadProfile(displayId) {
+        try {
+            // Get Vendor from Supabase 'vendors' table using custom ID (e.g. V001)
+            const { data: vendor, error } = await sbClient
+                .from('vendors')
+                .select('*')
+                .eq('vendor_unique_id', displayId) // Use the column name we set in SQL
+                .single();
+
+            if(error || !vendor) {
+                showError("Vendor Not Found", `ID "${displayId}" does not exist.`);
                 return;
             }
 
-            // Fetch BOTH sheets simultaneously
-            Promise.all([
-                fetch(`${apiRoot}/Vendors`).then(res => res.json()),
-                fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => [])) // Catch empty V2
-            ])
-            .then(([vendors1, vendors2]) => {
-                // Merge Data
-                const allVendors = [...vendors1, ...vendors2];
-                
-                // Find vendor in the combined list
-                const v = allVendors.find(item => (item.vendor_id || item.Vendor_ID) === id);
-                
-                if(!v) { 
-                    showError("Vendor Not Found", `ID "${id}" does not exist.`); 
-                } else {
-                    // Check if verify is FALSE (from V2 sheet logic)
-                    const isVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
-                    if(isVerified === "false") {
-                        showError("Pending Approval", "This vendor profile is awaiting verification.");
-                        return;
-                    }
+            // Check if suspended
+            if (!vendor.is_approved) {
+               showError("Pending Approval", "This profile is currently inactive.");
+               return;
+            }
 
-                    renderVendor(v, id);
-                    if (v.Email) { pageVendorEmail = v.Email.toLowerCase().trim(); checkOwner(); }
-                    
-                    document.getElementById('profile-skeleton').style.display = 'none';
-                    document.getElementById('profile-content').style.display = 'block';
+            // Render
+            renderVendor(vendor);
+            
+            // Check Ownership (Show Manage Button)
+            if (activeUser && activeUser.email === vendor.email) {
+                document.getElementById('btn-manage').style.display = 'block';
+            }
 
-                    const rawPhone = v.whatsapp || v.Whatsapp || "";
-                    currentVendorPhone = String(rawPhone).replace(/[^0-9]/g, '');
-                    
-                    loadProducts(id); 
-                }
-            })
-            .catch(err => { 
-                console.error("Fetch Error:", err); 
-                showError("Connection Error", "Check your internet connection."); 
-            });
-        });
+            // Load Products using the UUID
+            loadProducts(vendor.id); 
+
+        } catch (err) {
+            console.error(err);
+            showError("Connection Error", "Could not load vendor profile.");
+        }
     }
 
-    function renderVendor(v, id) {
-        const vName = v.business_name || v.Business_Name || v.name || v.Name || "Unknown";
-        document.title = `${vName} - Profile`;
-        document.getElementById('p-name').innerText = vName;
-        document.getElementById('p-id').innerText = `ID: ${id}`;
-        document.getElementById('p-desc').innerText = v.description || v.Description || "No description available.";
-        document.getElementById('p-location').innerText = v.location || v.Location || "AFIT Campus";
-        document.getElementById('p-date').innerText = v.date_joined || v.Date_Joined || "Recent";
-        let imgSrc = v.image || v.Image || "img/person.png"; if (!imgSrc.startsWith('http')) imgSrc = `img/${imgSrc}`;
+    function renderVendor(v) {
+        document.title = `${v.business_name} - Profile`;
+        document.getElementById('p-name').innerText = v.business_name;
+        document.getElementById('p-id').innerText = `ID: ${v.vendor_unique_id}`;
+        document.getElementById('p-desc').innerText = v.description || "No description available.";
+        document.getElementById('p-location').innerText = v.location || "AFIT Campus";
+        // Convert timestamp to year
+        const date = new Date(v.created_at);
+        document.getElementById('p-date').innerText = date.getFullYear();
+        
+        let imgSrc = v.logo_url || "img/person.png";
         document.getElementById('p-img').src = imgSrc;
-        const phone = v.whatsapp || v.Whatsapp || "";
+        
+        const phone = v.phone_number || "";
+        currentVendorPhone = String(phone).replace(/[^0-9]/g, '');
+        
         document.getElementById('link-phone').href = `tel:${phone}`;
-        document.getElementById('btn-contact').href = `https://wa.me/${phone}`;
-        const instaLink = v.instagram || v.Instagram;
-        if(instaLink) { const insta = document.getElementById('link-insta'); insta.href = `https://instagram.com/${instaLink}`; insta.style.display = 'inline-block'; }
+        document.getElementById('btn-contact').href = `https://wa.me/${currentVendorPhone}`;
         
-        let status = String(v.verified || v.Verified || "").toLowerCase().trim();
-        const badgeSpan = document.getElementById('p-badge');
-        if (status === "gold") badgeSpan.innerHTML = '<i class="fas fa-check-circle tick-gold"></i>';
-        else if (status === "blue") badgeSpan.innerHTML = '<i class="fas fa-check-circle tick-blue"></i>';
+        const instaLink = v.instagram_handle;
+        if(instaLink) { 
+            const insta = document.getElementById('link-insta'); 
+            insta.href = `https://instagram.com/${instaLink.replace('@','')}`; 
+            insta.style.display = 'inline-block'; 
+        }
         
-        const is247 = String(v.online_247 || v.Online_247 || "").toLowerCase().trim() === "true";
+        // Badge logic (Assuming you add a 'verified_level' column later, or just is_approved)
+        if (v.is_approved) document.getElementById('p-badge').innerHTML = '<i class="fas fa-check-circle tick-blue"></i>';
+        
+        // Status Logic
+        const is247 = v.online_247;
         const statusBadge = document.getElementById('shop-status');
         const hoursText = document.getElementById('p-hours');
+        
         if (is247) {
-            hoursText.innerText = "Digital Service (24/7)"; statusBadge.innerText = "🟢 Online 24/7"; statusBadge.className = "status-open";
+            hoursText.innerText = "Digital Service (24/7)"; 
+            statusBadge.innerText = "🟢 Online 24/7"; 
+            statusBadge.className = "status-open";
         } else {
-            const openTime = parseInt(v.open_time || v.Open_Time || 9); const closeTime = parseInt(v.close_time || v.Close_Time || 21);
+            // Default times if missing
+            const openTime = v.open_time ? parseInt(v.open_time.split(':')[0]) : 9;
+            const closeTime = v.close_time ? parseInt(v.close_time.split(':')[0]) : 21;
+            
             const formatTime = (t) => { if(t === 12) return "12pm"; if(t === 24 || t === 0) return "12am"; return t > 12 ? (t - 12) + "pm" : t + "am"; };
+            
             hoursText.innerText = `Mon - Sat: ${formatTime(openTime)} - ${formatTime(closeTime)}`;
-            const now = new Date(); const currentHour = now.getHours(); const currentDay = now.getDay(); 
+            
+            const now = new Date(); 
+            const currentHour = now.getHours(); 
+            const currentDay = now.getDay(); 
+            
             if (currentDay === 0) { statusBadge.innerText = "🔴 Closed (Sunday)"; statusBadge.className = "status-closed"; }
             else if (currentHour >= openTime && currentHour < closeTime) { statusBadge.innerText = "🟢 Open Now"; statusBadge.className = "status-open"; }
             else { statusBadge.innerText = "🔴 Closed Now"; statusBadge.className = "status-closed"; }
         }
+
+        // Show Content
+        document.getElementById('profile-skeleton').style.display = 'none';
+        document.getElementById('profile-content').style.display = 'block';
     }
 
-    async function loadProducts(id) {
-        fetch(`${apiRoot}/Products`)
-        .then(res => res.json())
-        .then(async (sheetData) => {
-            const firestoreProducts = await loadVendorFirestoreItems(id);
-            const allProducts = [...sheetData, ...firestoreProducts];
-            
-            allVendorProducts = allProducts.filter(p => (p.vendor_id || p.Vendor_ID) === id);
-            
+    // --- FETCH PRODUCTS ---
+    async function loadProducts(vendorUUID) {
+        try {
+            const { data: products, error } = await sbClient
+                .from('products')
+                .select('*')
+                .eq('vendor_id', vendorUUID) // Use the UUID to find products
+                .order('created_at', { ascending: false });
+
+            if(error) throw error;
+
+            allVendorProducts = products;
             const grid = document.getElementById('vendor-grid');
             grid.innerHTML = ""; 
-            
+
             if(allVendorProducts.length === 0) { 
                 grid.innerHTML = "<p style='width:100%; text-align:center; padding:20px; color:#777;'>No items listed yet.</p>"; 
                 document.getElementById('load-more-container').style.display = 'none';
@@ -478,59 +461,61 @@
             }
             
             renderBatch();
-        });
+
+        } catch (err) {
+            console.error("Products Error:", err);
+        }
     }
 
     function renderBatch() {
         const grid = document.getElementById('vendor-grid');
-        const loadMoreBtn = document.getElementById('load-more-btn');
         const loadMoreContainer = document.getElementById('load-more-container');
+        const loadMoreBtn = document.getElementById('load-more-btn');
 
         const nextIndex = currentProductIndex + BATCH_SIZE;
         const productsToShow = allVendorProducts.slice(currentProductIndex, nextIndex);
 
         productsToShow.forEach(p => {
-            const pName = p.name || p.Name; 
-            const pPrice = p.price || p.Price; 
-            const pCategory = p.category || p.Category; 
-            const pImage = p.image || p.Image;
-            const pStatus = p.status || p.Status || "Active"; 
-            const isFeatured = p.is_featured === "true"; 
-            const pDesc = p.description || p.Description || "No additional details.";
+            const isSold = p.is_sold;
+            const isFeatured = p.is_flash_sale;
             
-            const pID = p.id || (p.vendor_id + "-" + pName).replace(/\s+/g, '-').toLowerCase();
-            let pImg = pImage || "logo-blue.png"; 
-            if (!pImg.startsWith('http')) pImg = `img/${pImg}`;
+            const pID = p.id;
+            const pName = p.title;
+            const pPrice = "₦" + Number(p.price).toLocaleString();
+            const img = p.image_url;
+            const pDesc = p.description || "No description.";
             
+            // Save Status
             const isSaved = savedItemIds.has(pID); 
             const heartClass = isSaved ? 'fas' : 'far'; 
             const heartColor = isSaved ? '#ff4757' : '#777';
 
-            const isSold = pStatus === "Sold";
             const opacity = isSold ? 'opacity:0.6;' : '';
             let badge = '';
             if (isSold) badge = '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>';
             else if (isFeatured) badge = '<span style="background:#f1c40f; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10; font-weight:bold;">⭐ Sponsored</span>';
 
-            const safeNameJS = pName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-            const safeDescJS = pDesc.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+            const safeName = pName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            const safeDesc = pDesc.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
 
             const btnText = isSold ? "Sold" : "Get Item";
             const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
-            const btnAction = isSold ? "" : `openDetailModal('${safeNameJS}', '${escapeHTML(pPrice)}', '${safeDescJS}', '${escapeHTML(pCategory)}')`;
+            const btnAction = isSold ? "" : `openDetailModal('${safeName}', '${pPrice}', '${safeDesc}', '${p.category}')`;
 
             grid.innerHTML += `
             <div class="ad-card" style="position:relative; ${opacity}">
                 ${badge}
-                <button onclick="toggleSave('${pID}', '${safeNameJS}', '${pPrice}', '${pImage}', '${p.vendor_id || p.Vendor_ID}')" class="save-btn" id="save-${pID}" style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i></button>
+                <button onclick="toggleSave('${pID}')" class="save-btn" id="save-${pID}" 
+                    style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
+                    <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
+                </button>
                 
-                <img class="ad-img" src="${pImg}" alt="${escapeHTML(pName)}" onerror="this.src='img/logo-blue.png'">
+                <img class="ad-img" src="${img}" alt="${safeName}" onerror="this.src='img/logo-blue.png'">
                 
                 <div class="ad-info">
-                    <div class="ad-price">${escapeHTML(pPrice)}</div>
-                    <div class="ad-title">${escapeHTML(pName)}</div>
-                    <div class="ad-desc-preview">${escapeHTML(pDesc)}</div>
-                    <div class="ad-location">Category: ${escapeHTML(pCategory)}</div>
+                    <div class="ad-price">${pPrice}</div>
+                    <div class="ad-title">${pName}</div>
+                    <div class="ad-desc-preview">${pDesc.substring(0, 40)}...</div>
                     <button onclick="${btnAction}" class="chat-btn" style="width:100%; margin-top:5px; border:none; cursor:pointer; ${btnStyle}">${btnText}</button>
                 </div>
             </div>`;
@@ -546,6 +531,7 @@
         }
     }
 
+    // --- UTILS ---
     window.openDetailModal = function(title, price, desc, category) {
         document.getElementById('m-title').innerText = title;
         document.getElementById('m-price').innerText = price;
@@ -558,12 +544,42 @@
         document.getElementById('detail-modal').style.display = 'flex';
     };
 
-    async function loadVendorFirestoreItems(vid) {
-        try {
-            const q = query(collection(db, "products"), where("vendor_id", "==", vid));
-            const snapshot = await getDocs(q);
-            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        } catch(e) { console.error("Firestore Error:", e); return []; }
+    window.toggleSave = async function(pid) {
+        if (!activeUser) { 
+            if(confirm("Sign in to save items?")) window.location.href = "login.html"; 
+            return; 
+        }
+        
+        const btnIcon = document.querySelector(`#save-${pid} i`);
+        
+        if (savedItemIds.has(pid)) {
+            // Remove
+            savedItemIds.delete(pid);
+            btnIcon.classList.replace('fas', 'far'); btnIcon.style.color = '#777';
+            await sbClient.from('saved_items').delete().eq('user_id', activeUser.id).eq('product_id', pid);
+        } else {
+            // Add
+            savedItemIds.add(pid);
+            btnIcon.classList.replace('far', 'fas'); btnIcon.style.color = '#ff4757';
+            await sbClient.from('saved_items').insert({ user_id: activeUser.id, product_id: pid });
+        }
+    };
+
+    async function loadSavedItems() {
+        if(!activeUser) return;
+        const { data } = await sbClient.from('saved_items').select('product_id').eq('user_id', activeUser.id);
+        if(data) data.forEach(item => savedItemIds.add(item.product_id));
+        updateHeartIcons();
+    }
+
+    function updateHeartIcons() {
+        document.querySelectorAll('.save-btn').forEach(btn => {
+            const id = btn.id.replace('save-', '');
+            const icon = btn.querySelector('i');
+            if (savedItemIds.has(id)) {
+                icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
+            }
+        });
     }
 
     function showError(title, msg) {
@@ -577,32 +593,6 @@
     window.shareVendor = function() {
         if (navigator.share) { navigator.share({ title: document.title, url: window.location.href }); } else { alert("Link copied!"); }
     }
-
-    window.toggleSave = async function(id, name, price, image, vendor) {
-        const user = auth.currentUser;
-        if (!user) { if(confirm("You need to sign in to save items. Go to login page?")) { window.location.href = "login.html"; } return; }
-        const userRef = doc(db, "users", user.uid, "saved_items", id);
-
-        if (savedItemIds.has(id)) {
-            savedItemIds.delete(id); await deleteDoc(userRef);
-        } else {
-            savedItemIds.add(id);
-            await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() });
-        }
-        updateHeartIcons();
-    };
-
-    function updateHeartIcons() {
-        document.querySelectorAll('.save-btn').forEach(btn => {
-            const id = btn.id.replace('save-', '');
-            const icon = btn.querySelector('i');
-            if (savedItemIds.has(id)) {
-                icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
-            } else {
-                icon.classList.replace('fas', 'far'); icon.style.color = '#777';
-            }
-        });
-    }
-</script>
+  </script>
 </body>
 </html>

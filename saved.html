@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="asset/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
-    <link rel="apple-touch-icon" href="img/app-logo.png">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
       /* LOAD MORE BUTTON */
@@ -114,10 +114,6 @@
         <div id="saved-grid" class="trending-grid" style="padding: 15px; display:none;">
         </div>
 
-        <div id="load-more-container">
-            <button id="load-more-btn">Load More</button>
-        </div>
-
         <div id="empty-state" style="display:none; text-align:center; padding:50px; color:#888;">
             <i class="far fa-heart" style="font-size:40px; margin-bottom:15px; opacity:0.5;"></i>
             <p>You haven't saved any items yet.</p>
@@ -149,184 +145,103 @@
 
     <script src="asset/script.js"></script>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } 
-        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, deleteDoc, query, limit, startAfter, orderBy, getDoc } 
-        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        // CONFIG
-        const firebaseConfig = {
-            apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
-            authDomain: "afit-market-auth.firebaseapp.com",
-            projectId: "afit-market-auth",
-            storageBucket: "afit-market-auth.firebasestorage.app",
-            messagingSenderId: "894920886640",
-            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
-        const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
-        const ADMIN_PHONE = "2348144516127";
+    <script>
+        // --- SUPABASE CONFIG ---
+        const supabaseUrl = "https://mofdxngxakijeokaylwt.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vZmR4bmd4YWtpamVva2F5bHd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyNzYyMjAsImV4cCI6MjA4NDg1MjIyMH0.PqyNGp7Yp01ScCMDr4ta6GQPVqxa6A476Lz9cYKj3dE";
         
-        let globalPhoneBook = {};
-        let masterProductList = []; // Stores ALL products to find descriptions
+        const sbClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        const ADMIN_PHONE = "2348144516127";
+        let activeUser = null;
 
-        // PAGINATION VARS
-        let lastVisibleDoc = null;
-        let isFetching = false;
-        const BATCH_SIZE = 10;
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // Load Master Data First
-                loadMasterData().then(() => {
-                    loadNextBatch(user.uid);
-                });
-                
-                document.getElementById('load-more-btn').addEventListener('click', () => {
-                    loadNextBatch(user.uid);
-                });
+        document.addEventListener("DOMContentLoaded", async () => {
+            
+            // Check Auth (Local or Supabase)
+            const localData = localStorage.getItem('user_data');
+            
+            if(localData) {
+                activeUser = JSON.parse(localData);
+                loadSavedItems(activeUser.id);
             } else {
-                window.location.href = "login.html";
+                const { data: { user } } = await sbClient.auth.getUser();
+                if(user) {
+                    activeUser = user;
+                    loadSavedItems(user.id);
+                } else {
+                    window.location.href = "login.html";
+                }
             }
         });
 
-        // 2. FETCH EVERYTHING (Vendors + Products) to enable "Smart" Saved Page
-        async function loadMasterData() {
-            try {
-                // Fetch Vendors
-                const vRes = await fetch(`${apiRoot}/Vendors`);
-                const vendors = await vRes.json();
-                vendors.forEach(v => {
-                    const vID = v.vendor_id || v.Vendor_ID;
-                    const vPhone = v.whatsapp || v.Whatsapp;
-                    if(vID) globalPhoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
-                });
-
-                // Fetch Sheet Products
-                const pRes = await fetch(`${apiRoot}/Products`);
-                const sheetProds = await pRes.json();
-                
-                // Fetch Firestore Products
-                const q = query(collection(db, "products"));
-                const snap = await getDocs(q);
-                const fireProds = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                // Combine them
-                masterProductList = [...sheetProds, ...fireProds];
-
-            } catch (err) { console.error("Error loading master data:", err); }
-        }
-
-        // 3. Fetch Saved Items (Paginated)
-        async function loadNextBatch(uid) {
-            if (isFetching) return;
-            isFetching = true;
-
+        async function loadSavedItems(uid) {
             const grid = document.getElementById('saved-grid');
             const skeleton = document.getElementById('saved-skeleton');
             const emptyState = document.getElementById('empty-state');
-            const loadBtnDiv = document.getElementById('load-more-container');
-            const loadBtn = document.getElementById('load-more-btn');
-
-            loadBtn.innerText = "Loading...";
 
             try {
-                let q;
-                const colRef = collection(db, "users", uid, "saved_items");
+                // 1. Fetch Saved Item IDs
+                const { data: saved, error } = await sbClient
+                    .from('saved_items')
+                    .select('product_id')
+                    .eq('user_id', uid);
 
-                if (lastVisibleDoc) {
-                    q = query(colRef, limit(BATCH_SIZE), startAfter(lastVisibleDoc));
-                } else {
-                    q = query(colRef, limit(BATCH_SIZE));
-                }
+                if (error) throw error;
 
-                const querySnapshot = await getDocs(q);
-                
-                if(!lastVisibleDoc) skeleton.style.display = 'none';
-
-                if (querySnapshot.empty) {
-                    loadBtnDiv.style.display = 'none'; 
-                    if (!lastVisibleDoc) emptyState.style.display = 'block'; 
-                    isFetching = false;
+                if (!saved || saved.length === 0) {
+                    skeleton.style.display = 'none';
+                    emptyState.style.display = 'block';
                     return;
                 }
 
-                lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+                // 2. Fetch Full Product Details for those IDs
+                const productIds = saved.map(s => s.product_id);
+                
+                const { data: products, error: pError } = await sbClient
+                    .from('products')
+                    .select('*, vendors(business_name, whatsapp_number)')
+                    .in('id', productIds);
+
+                if (pError) throw pError;
+
+                skeleton.style.display = 'none';
                 grid.style.display = 'grid';
+                grid.innerHTML = "";
 
-                for (const docSnap of querySnapshot.docs) {
-                    const savedData = docSnap.data();
-                    const pID = docSnap.id; // The ID saved in Firestore
+                // 3. Render
+                products.forEach(p => {
+                    const vendorName = p.vendors?.business_name || "Vendor";
+                    const vendorPhone = p.vendors?.whatsapp_number || ADMIN_PHONE;
+                    const price = "₦" + Number(p.price).toLocaleString();
+                    const img = p.image_url;
                     
-                    // MAGIC: Look for the real item in our Master List
-                    // We check if the ID matches OR if we can reconstruct the ID
-                    let liveItem = masterProductList.find(p => p.id === pID);
-                    
-                    // If not found by direct ID, try the ID generation logic used in other files
-                    if (!liveItem) {
-                        liveItem = masterProductList.find(p => {
-                            const genID = (p.id || ((p.vendor_id||p.Vendor_ID) + "-" + (p.name||p.Name)).replace(/\s+/g, '-').toLowerCase());
-                            return genID === pID;
-                        });
-                    }
-
-                    // Use Live Data if available, otherwise fallback to Saved Data
-                    const pName = liveItem ? (liveItem.name || liveItem.Name) : savedData.name;
-                    const pPrice = liveItem ? (liveItem.price || liveItem.Price) : savedData.price;
-                    const pVendor = liveItem ? (liveItem.vendor_id || liveItem.Vendor_ID) : savedData.vendor;
-                    let pImage = liveItem ? (liveItem.image || liveItem.Image) : savedData.image;
-                    // GET DESCRIPTION (Live or Fallback)
-                    let pDesc = liveItem ? (liveItem.description || liveItem.Description) : savedData.description;
-                    if(!pDesc) pDesc = "No description available.";
-
-                    const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
-                    const vendorPhone = globalPhoneBook[pVendor] || ADMIN_PHONE;
-                    
-                    const safeName = String(pName).replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                    const safeDesc = String(pDesc).replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
-                    const safePrice = String(pPrice).replace(/'/g, "\\'");
-
-                    const btnAction = `openDetailModal('${safeName}', '${safePrice}', '${safeDesc}', '${pVendor}', '${vendorPhone}')`;
+                    const safeName = p.title.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                    const safeDesc = (p.description || "No description").replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
 
                     grid.innerHTML += `
-                    <div class="ad-card" id="card-${pID}" style="position:relative;">
-                        <button onclick="removeSavedItem('${pID}')" 
+                    <div class="ad-card" id="card-${p.id}" style="position:relative;">
+                        <button onclick="removeSavedItem('${p.id}')" 
                                 style="position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.9); border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.1); z-index:10;">
                             <i class="fas fa-trash-alt" style="color:#ff4757; font-size:14px;"></i>
                         </button>
-                        <img class="ad-img" src="${img}" alt="${safeName}" onerror="this.src='img/logo-blue.png'">
+                        <img class="ad-img" src="${img}" onerror="this.src='img/logo-blue.png'">
                         <div class="ad-info">
-                            <div class="ad-price">${pPrice}</div>
-                            <div class="ad-title">${pName}</div>
-                            <div class="ad-desc-preview">${pDesc}</div>
-                            <div class="ad-location">Vendor: ${pVendor}</div>
-                            <button onclick="${btnAction}" class="chat-btn" style="width:100%; border:none; margin-top:5px; cursor:pointer;">Get Item</button>
+                            <div class="ad-price">${price}</div>
+                            <div class="ad-title">${p.title}</div>
+                            <div class="ad-location">Vendor: ${vendorName}</div>
+                            <button onclick="openDetailModal('${safeName}', '${price}', '${safeDesc}', '${vendorName}', '${vendorPhone}')" class="chat-btn" style="width:100%; border:none; margin-top:5px; cursor:pointer;">Get Item</button>
                         </div>
                     </div>`;
-                }
-
-                if (querySnapshot.size < BATCH_SIZE) {
-                    loadBtnDiv.style.display = 'none';
-                } else {
-                    loadBtnDiv.style.display = 'block';
-                    loadBtn.innerText = "Load More";
-                }
+                });
 
             } catch (err) {
-                console.error("Error loading items:", err);
-                if(!lastVisibleDoc) grid.innerHTML = "<p style='width:100%; text-align:center;'>Error loading items.</p>";
+                console.error("Error loading saved:", err);
+                skeleton.style.display = 'none';
+                grid.innerHTML = "<p>Error loading saved items.</p>";
+                grid.style.display = 'block';
             }
-            isFetching = false;
         }
 
-        // FUNCTION TO OPEN MODAL
         window.openDetailModal = function(title, price, desc, vendor, phone) {
             document.getElementById('m-title').innerText = title;
             document.getElementById('m-price').innerText = price;
@@ -339,25 +254,37 @@
             document.getElementById('detail-modal').style.display = 'flex';
         };
 
-        window.removeSavedItem = async function(docID) {
-            if(!confirm("Remove this item?")) return;
-            const user = auth.currentUser;
-            if(!user) return;
-
-            const card = document.getElementById(`card-${docID}`);
+        window.removeSavedItem = async function(pid) {
+            if(!confirm("Remove from saved items?")) return;
+            const card = document.getElementById(`card-${pid}`);
             if(card) card.style.opacity = "0.5";
 
             try {
-                await deleteDoc(doc(db, "users", user.uid, "saved_items", docID));
+                // Delete from Supabase
+                const { error } = await sbClient
+                    .from('saved_items')
+                    .delete()
+                    .eq('user_id', activeUser.id)
+                    .eq('product_id', pid);
+
+                if(error) throw error;
+
+                // Animate Removal
                 if(card) {
                     card.style.transform = "scale(0)";
-                    setTimeout(() => card.remove(), 300);
+                    setTimeout(() => {
+                        card.remove();
+                        // Check if empty
+                        if(document.getElementById('saved-grid').children.length === 0) {
+                            document.getElementById('empty-state').style.display = 'block';
+                        }
+                    }, 300);
                 }
             } catch (err) {
-                alert("Could not remove item. Check connection.");
+                alert("Error removing item.");
                 if(card) card.style.opacity = "1";
             }
-        }
+        };
     </script>
 </body>
 </html>

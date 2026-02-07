@@ -7,8 +7,9 @@
     <link rel="stylesheet" href="asset/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
-    <link rel="apple-touch-icon" href="img/app-logo.png">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         /* Dashboard Styles */
         .dash-header {
@@ -147,7 +148,7 @@
             
             <div style="font-size:12px; opacity:0.9; margin-top:5px; display:flex; align-items:center; gap:5px;">
                 <i class="fas fa-crown" style="color:#ffd700;"></i> 
-                Limit: <span id="limit-display">Checking...</span> items
+                Limit: <span id="limit-display">...</span> items
             </div>
 
             <div class="plan-info-box">
@@ -175,7 +176,7 @@
         </div>
 
         <div id="status-message" style="text-align:center; padding:30px; color:#777; font-size:14px;">
-            <i class="fas fa-circle-notch fa-spin"></i> Verifying Vendor Access...
+            <i class="fas fa-circle-notch fa-spin"></i> Loading Dashboard...
         </div>
 
         <div style="padding: 0 15px 80px;">
@@ -269,313 +270,327 @@
 
     <script src="asset/script.js"></script>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    // CONFIG
-    const firebaseConfig = {
-        apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
-        authDomain: "afit-market-auth.firebaseapp.com",
-        projectId: "afit-market-auth",
-        storageBucket: "afit-market-auth.firebasestorage.app",
-        messagingSenderId: "894920886640",
-        appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    const IMGBB_KEY = "2ac38bef2c73c5a65e7ddf94efe37962";
-    const SHEET_ID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
-    const API_ROOT = `https://opensheet.elk.sh/${SHEET_ID}`;
-
-    let currentVendorID = null;
-    let maxItems = 5; 
-    let currentCount = 0;
-    
-    let isEditing = false;
-    let editDocID = null;
-    let currentImageURL = "";
-
-    // --- PAGINATION VARS ---
-    let allFetchedItems = []; 
-    let renderedCount = 0; 
-    const INITIAL_LOAD = 20;
-    const LOAD_STEP = 10;
-
-    function escapeHTML(str) {
-        if (!str) return "";
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-
-    onAuthStateChanged(auth, async (user) => {
-        const statusMsg = document.getElementById('status-message');
-        if (user) {
-            document.getElementById('dash-name').innerText = user.displayName || "Vendor";
-            try {
-                // ✅ DUAL FETCH: Check both sheets for vendor access
-                const [vendors1, vendors2] = await Promise.all([
-                    fetch(`${API_ROOT}/Vendors`).then(res => res.json()),
-                    fetch(`${API_ROOT}/Vendors_v2`).then(res => res.json().catch(() => []))
-                ]);
-
-                const allVendors = [...vendors1, ...vendors2];
-                
-                // Find vendor by email
-                const myVendorProfile = allVendors.find(v => {
-                    const emailVal = v.Email || v.email || v.EMAIL;
-                    return emailVal && emailVal.toLowerCase().trim() === user.email.toLowerCase().trim();
-                });
-
-                if (myVendorProfile) {
-                    // --- VENDOR FOUND ---
-                    currentVendorID = myVendorProfile.Vendor_ID || myVendorProfile.vendor_id;
-                    maxItems = parseInt(myVendorProfile.Max_Items) || 5;
-
-                    // ✅ NEW: GET PLAN & DUE DATE
-                    const plan = myVendorProfile.Subscription_Plan || myVendorProfile.subscription_plan || "Essential Plan";
-                    const due = myVendorProfile.Next_Payment_Due || myVendorProfile.next_payment_due || "N/A";
-
-                    document.getElementById('sub-plan').innerText = plan;
-                    document.getElementById('sub-due').innerText = due;
-
-                    // Unhide Dashboard
-                    const mainContent = document.getElementById('main-content');
-                    if(mainContent) mainContent.style.display = 'block';
-
-                    document.getElementById('vendor-badge').innerText = `ID: ${currentVendorID}`;
-                    document.getElementById('limit-display').innerText = maxItems;
-                    document.getElementById('add-btn').style.display = 'flex';
-                    
-                    if(statusMsg) statusMsg.style.display = 'none';
-                    
-                    // Start Loading Items
-                    loadMyItems(currentVendorID);
-
-                } else {
-                    // --- ❌ NOT A VENDOR ---
-                    alert(`Access Denied: The email "${user.email}" is not registered as a Vendor.\n\nYou will be logged out now. Please sign in with the correct Vendor email.`);
-                    await signOut(auth);
-                    window.location.href = "login.html";
-                }
-
-            } catch (err) { 
-                console.error("Dashboard Error:", err); 
-                if(statusMsg) statusMsg.innerText = "Error connecting to vendor database. Please refresh."; 
-            }
-        } else { 
-            window.location.href = "login.html"; 
-        }
-    });
-
-    async function loadMyItems(vid) {
-        document.getElementById('load-more-btn').addEventListener('click', renderBatch);
-
-        const grid = document.getElementById('my-items-grid');
-        grid.innerHTML = "";
+    <script>
+        // --- SUPABASE SETUP ---
+        const supabaseUrl = "https://mofdxngxakijeokaylwt.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vZmR4bmd4YWtpamVva2F5bHd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyNzYyMjAsImV4cCI6MjA4NDg1MjIyMH0.PqyNGp7Yp01ScCMDr4ta6GQPVqxa6A476Lz9cYKj3dE";
         
-        try {
-            const q = query(collection(db, "products"), where("vendor_id", "==", vid));
-            const querySnapshot = await getDocs(q);
-            
-            allFetchedItems = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
-            currentCount = allFetchedItems.length;
-            document.getElementById('item-count').innerText = `${currentCount} / ${maxItems}`;
-            if(currentCount >= maxItems) document.getElementById('item-count').style.color = "#ff4757";
+        // Use 'sbClient' to prevent naming conflicts
+        const sbClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // ImgBB Key (Keep this)
+        const IMGBB_KEY = "2ac38bef2c73c5a65e7ddf94efe37962";
 
-            if(allFetchedItems.length === 0) {
-                grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#999;">You haven't posted any items yet.</p>`;
-                document.getElementById('load-more-container').style.display = 'none';
-                return;
+        // Global Variables
+        let activeVendorUUID = null;
+        let maxItems = 5; 
+        let currentCount = 0;
+        let isEditing = false;
+        let editDocID = null;
+        let currentImageURL = "";
+        let allFetchedItems = []; 
+        let renderedCount = 0; 
+        const INITIAL_LOAD = 20;
+        const LOAD_STEP = 10;
+
+        function escapeHTML(str) {
+            if (!str) return "";
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            
+            // 1. AUTH CHECK
+            let vendor = null;
+            const statusMsg = document.getElementById('status-message');
+
+            // A) Check LocalStorage (Custom Login)
+            const localData = localStorage.getItem('user_data');
+            const localRole = localStorage.getItem('user_role');
+
+            if(localData && localRole === 'vendor') {
+                vendor = JSON.parse(localData);
+            } 
+            // B) Check Supabase Session (Google Login)
+            else {
+                const { data: { user } } = await sbClient.auth.getUser();
+                if (user) {
+                    // Fetch from 'vendors' table using email
+                    const { data: vData } = await sbClient
+                        .from('vendors')
+                        .select('*')
+                        .eq('email', user.email)
+                        .single();
+                    if(vData) vendor = vData;
+                }
             }
 
-            renderedCount = 0;
-            renderBatch();
+            // 2. LOAD DASHBOARD
+            if (vendor) {
+                // We have a verified vendor
+                activeVendorUUID = vendor.id;
+                maxItems = vendor.slots_total || 5;
 
-        } catch (err) { console.error("Error loading items:", err); }
-    }
-
-    function renderBatch() {
-        const grid = document.getElementById('my-items-grid');
-        const loadMoreContainer = document.getElementById('load-more-container');
-        const loadMoreBtn = document.getElementById('load-more-btn');
-
-        const batchSize = (renderedCount === 0) ? INITIAL_LOAD : LOAD_STEP;
-        const nextItems = allFetchedItems.slice(renderedCount, renderedCount + batchSize);
-
-        nextItems.forEach(data => {
-            const isStory = data.is_story === "true";
-            const isSold = data.status === "Sold";
-            const badge = isStory ? '<span style="background:#ff4757; color:white; font-size:9px; padding:2px 5px; border-radius:4px; margin-left:5px;">⚡ FLASH</span>' : '';
-            
-            const opacity = isSold ? '0.6' : '1';
-            const soldBtnClass = isSold ? 'btn-sold is-sold' : 'btn-sold';
-            const soldIcon = isSold ? 'fa-eye-slash' : 'fa-check';
-            const soldText = isSold ? "Sold" : "Active";
-
-            const safeNameJS = (data.name || "").replace(/'/g, "\\'").replace(/"/g, "&quot;");
-            const safeDescJS = (data.description || "").replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
-            const safePriceJS = (data.price || "").replace(/'/g, "\\'");
-
-            const safeNameHTML = escapeHTML(data.name);
-            const safePriceHTML = escapeHTML(data.price);
-            
-            grid.innerHTML += `
-            <div class="ad-card" style="position:relative; opacity:${opacity};">
-                <div class="card-actions">
-                    <button onclick="editItem('${data.id}', '${safeNameJS}', '${safePriceJS}', '${safeDescJS}', '${data.category}', '${data.condition}', '${data.image}')" class="action-btn btn-edit" title="Edit Item">
-                        <i class="fas fa-pencil-alt"></i>
-                    </button>
-                    <button onclick="toggleSold('${data.id}', '${data.status}')" class="action-btn ${soldBtnClass}" title="Mark Sold">
-                        <i class="fas ${soldIcon}"></i>
-                    </button>
-                    <button onclick="deleteItem('${data.id}')" class="action-btn btn-del" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
+                // UI Updates
+                document.getElementById('dash-name').innerText = vendor.business_name;
+                document.getElementById('sub-plan').innerText = vendor.subscription_plan || "Basic";
+                document.getElementById('sub-due').innerText = vendor.next_payment_due || "N/A"; // Make sure you have this column or it will show N/A
+                document.getElementById('vendor-badge').innerText = `ID: ${vendor.vendor_unique_id}`;
+                document.getElementById('limit-display').innerText = maxItems;
                 
-                <img class="ad-img" src="${data.image}" onerror="this.src='img/logo-blue.png'">
-                <div class="ad-info">
-                    <div class="ad-price">${safePriceHTML}</div>
-                    <div class="ad-title">${safeNameHTML} ${badge}</div>
-                    <div class="ad-location" style="font-size:10px; color:${isSold ? 'red' : 'green'};">${soldText}</div>
-                </div>
-            </div>`;
+                // Show Content
+                document.getElementById('main-content').style.display = 'block';
+                document.getElementById('add-btn').style.display = 'flex';
+                statusMsg.style.display = 'none';
+
+                loadMyItems();
+
+            } else {
+                // Not logged in or not a vendor
+                alert("Access Denied: Please log in as a vendor.");
+                window.location.href = "login.html";
+            }
         });
 
-        renderedCount += nextItems.length;
+        // --- FETCH ITEMS ---
+        async function loadMyItems() {
+            document.getElementById('load-more-btn').addEventListener('click', renderBatch);
+            const grid = document.getElementById('my-items-grid');
+            grid.innerHTML = "";
 
-        if (renderedCount >= allFetchedItems.length) {
-            loadMoreContainer.style.display = 'none';
-        } else {
-            loadMoreContainer.style.display = 'block';
-            loadMoreBtn.innerText = "Load More";
+            try {
+                // Fetch from Supabase Products Table
+                const { data: products, error } = await sbClient
+                    .from('products')
+                    .select('*')
+                    .eq('vendor_id', activeVendorUUID) // Using UUID
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                allFetchedItems = products;
+                currentCount = allFetchedItems.length;
+
+                // Update Stats
+                document.getElementById('item-count').innerText = `${currentCount} / ${maxItems}`;
+                if(currentCount >= maxItems) document.getElementById('item-count').style.color = "#ff4757";
+
+                // Count Views
+                const totalViews = allFetchedItems.reduce((sum, item) => sum + (item.views_count || 0), 0);
+                document.getElementById('view-count').innerText = totalViews;
+
+                if(allFetchedItems.length === 0) {
+                    grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#999;">You haven't posted any items yet.</p>`;
+                    document.getElementById('load-more-container').style.display = 'none';
+                    return;
+                }
+
+                renderedCount = 0;
+                renderBatch();
+
+            } catch (err) { console.error("Error loading items:", err); }
         }
-    }
 
-    window.editItem = function(id, name, price, desc, cat, cond, img) {
-        isEditing = true;
-        editDocID = id;
-        currentImageURL = img;
+        function renderBatch() {
+            const grid = document.getElementById('my-items-grid');
+            const loadMoreContainer = document.getElementById('load-more-container');
+            const loadMoreBtn = document.getElementById('load-more-btn');
 
-        document.getElementById('modal-title').innerText = "Edit Item";
-        document.getElementById('btn-submit').innerText = "Update Item";
-        document.getElementById('p-name').value = name;
-        document.getElementById('p-price').value = price.replace(/[^0-9]/g, '');
-        document.getElementById('p-desc').value = desc;
-        document.getElementById('p-cat').value = cat;
-        document.getElementById('p-condition').value = cond || "Used";
-        document.getElementById('photo-label').innerText = "(Leave empty to keep current photo)";
+            const batchSize = (renderedCount === 0) ? INITIAL_LOAD : LOAD_STEP;
+            const nextItems = allFetchedItems.slice(renderedCount, renderedCount + batchSize);
 
-        document.getElementById('upload-modal').style.display = 'flex';
-    };
+            nextItems.forEach(data => {
+                const isStory = data.is_flash_sale === true;
+                const isSold = data.is_sold === true;
+                const badge = isStory ? '<span style="background:#ff4757; color:white; font-size:9px; padding:2px 5px; border-radius:4px; margin-left:5px;">⚡ FLASH</span>' : '';
+                
+                const opacity = isSold ? '0.6' : '1';
+                const soldBtnClass = isSold ? 'btn-sold is-sold' : 'btn-sold';
+                const soldIcon = isSold ? 'fa-eye-slash' : 'fa-check';
+                const soldText = isSold ? "Sold" : "Active";
 
-    window.openNewUpload = function() {
-        if (currentCount >= maxItems) {
-            document.getElementById('alert-limit').innerText = maxItems;
-            document.getElementById('limit-modal').style.display = 'flex';
-        } else {
-            isEditing = false;
-            editDocID = null;
-            document.getElementById('modal-title').innerText = "New Item";
-            document.getElementById('btn-submit').innerText = "Post Item";
-            document.getElementById('p-name').value = "";
-            document.getElementById('p-price').value = "";
-            document.getElementById('p-desc').value = "";
-            document.getElementById('p-file').value = "";
-            document.getElementById('photo-label').innerText = "";
-            
-            document.getElementById('upload-modal').style.display = 'flex';
-        }
-    };
+                const safeNameJS = (data.title || "").replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                const safeDescJS = (data.description || "").replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+                const safePriceJS = data.price; // It's a number now
 
-    document.getElementById('btn-submit').addEventListener('click', async () => {
-        if (!isEditing && currentCount >= maxItems) { alert("Limit Reached!"); return; }
+                const safeNameHTML = escapeHTML(data.title);
+                const safePriceHTML = "₦" + Number(data.price).toLocaleString();
+                
+                grid.innerHTML += `
+                <div class="ad-card" style="position:relative; opacity:${opacity};">
+                    <div class="card-actions">
+                        <button onclick="editItem('${data.id}', '${safeNameJS}', '${safePriceJS}', '${safeDescJS}', '${data.category}', 'Used', '${data.image_url}')" class="action-btn btn-edit" title="Edit Item">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                        <button onclick="toggleSold('${data.id}', ${isSold})" class="action-btn ${soldBtnClass}" title="Mark Sold">
+                            <i class="fas ${soldIcon}"></i>
+                        </button>
+                        <button onclick="deleteItem('${data.id}')" class="action-btn btn-del" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    
+                    <img class="ad-img" src="${data.image_url}" onerror="this.src='img/logo-blue.png'">
+                    <div class="ad-info">
+                        <div class="ad-price">${safePriceHTML}</div>
+                        <div class="ad-title">${safeNameHTML} ${badge}</div>
+                        <div class="ad-location" style="font-size:10px; color:${isSold ? 'red' : 'green'};">${soldText}</div>
+                    </div>
+                </div>`;
+            });
 
-        const btn = document.getElementById('btn-submit');
-        const name = document.getElementById('p-name').value;
-        const rawPrice = document.getElementById('p-price').value;
-        const desc = document.getElementById('p-desc').value;
-        const cat = document.getElementById('p-cat').value;
-        const condition = document.getElementById('p-condition').value; 
-        const fileInput = document.getElementById('p-file');
+            renderedCount += nextItems.length;
 
-        if (!name || !rawPrice) { alert("Name and Price are required."); return; }
-        if (!isEditing && fileInput.files.length === 0) { alert("Please select an image."); return; }
-
-        const formattedPrice = "₦" + Number(rawPrice.replace(/[^0-9]/g, '')).toLocaleString(); 
-
-        btn.innerText = isEditing ? "Updating..." : "Uploading...";
-        btn.disabled = true;
-        btn.style.opacity = "0.7";
-
-        try {
-            let finalImageUrl = currentImageURL;
-
-            if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                const formData = new FormData();
-                formData.append("image", file);
-                const imgReq = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
-                const imgData = await imgReq.json();
-                if (!imgData.success) throw new Error("Image Upload Failed");
-                finalImageUrl = imgData.data.url;
-            }
-
-            if (isEditing) {
-                const itemRef = doc(db, "products", editDocID);
-                await updateDoc(itemRef, {
-                    name: name, price: formattedPrice, description: desc, 
-                    category: cat, condition: condition, image: finalImageUrl
-                });
-                alert("Item Updated!");
+            if (renderedCount >= allFetchedItems.length) {
+                loadMoreContainer.style.display = 'none';
             } else {
-                await addDoc(collection(db, "products"), {
-                    name: name, price: formattedPrice, description: desc, 
-                    category: cat, condition: condition, image: finalImageUrl,
-                    vendor_id: currentVendorID, status: "Active", is_story: "false", timestamp: new Date()
-                });
-                alert("Item Posted!");
+                loadMoreContainer.style.display = 'block';
+                loadMoreBtn.innerText = "Load More";
             }
-
-            closeUploadModal();
-            location.reload();
-
-        } catch (error) { 
-            alert("Error: " + error.message); 
-            btn.innerText = isEditing ? "Update Item" : "Post Item"; 
-            btn.disabled = false; 
-            btn.style.opacity = "1"; 
         }
-    });
 
-    window.toggleSold = async function(docID, currentStatus) {
-        const newStatus = currentStatus === "Sold" ? "Active" : "Sold";
-        if(!confirm(`Mark as ${newStatus}?`)) return;
-        try {
-            await updateDoc(doc(db, "products", docID), { status: newStatus });
-            loadMyItems(currentVendorID);
-        } catch(e) { alert("Error: " + e.message); }
-    };
+        // --- ACTIONS ---
 
-    window.deleteItem = async function(docID) {
-        if(!confirm("Delete this item?")) return;
-        try { await deleteDoc(doc(db, "products", docID)); alert("Deleted!"); location.reload(); } 
-        catch(e) { alert("Error deleting: " + e.message); }
-    };
+        window.editItem = function(id, name, price, desc, cat, cond, img) {
+            isEditing = true;
+            editDocID = id;
+            currentImageURL = img;
 
-    window.closeUploadModal = function() { document.getElementById('upload-modal').style.display = 'none'; };
-    window.closeLimitModal = function() { document.getElementById('limit-modal').style.display = 'none'; };
-</script>
+            document.getElementById('modal-title').innerText = "Edit Item";
+            document.getElementById('btn-submit').innerText = "Update Item";
+            document.getElementById('p-name').value = name;
+            document.getElementById('p-price').value = price;
+            document.getElementById('p-desc').value = desc;
+            document.getElementById('p-cat').value = cat;
+            document.getElementById('p-condition').value = cond || "Used";
+            document.getElementById('photo-label').innerText = "(Leave empty to keep current photo)";
+
+            document.getElementById('upload-modal').style.display = 'flex';
+        };
+
+        window.openNewUpload = function() {
+            if (currentCount >= maxItems) {
+                document.getElementById('alert-limit').innerText = maxItems;
+                document.getElementById('limit-modal').style.display = 'flex';
+            } else {
+                isEditing = false;
+                editDocID = null;
+                document.getElementById('modal-title').innerText = "New Item";
+                document.getElementById('btn-submit').innerText = "Post Item";
+                document.getElementById('p-name').value = "";
+                document.getElementById('p-price').value = "";
+                document.getElementById('p-desc').value = "";
+                document.getElementById('p-file').value = "";
+                document.getElementById('photo-label').innerText = "";
+                
+                document.getElementById('upload-modal').style.display = 'flex';
+            }
+        };
+
+        document.getElementById('btn-submit').addEventListener('click', async () => {
+            if (!isEditing && currentCount >= maxItems) { alert("Limit Reached!"); return; }
+
+            const btn = document.getElementById('btn-submit');
+            const name = document.getElementById('p-name').value;
+            const rawPrice = document.getElementById('p-price').value;
+            const desc = document.getElementById('p-desc').value;
+            const cat = document.getElementById('p-cat').value;
+            const fileInput = document.getElementById('p-file');
+
+            if (!name || !rawPrice) { alert("Name and Price are required."); return; }
+            if (!isEditing && fileInput.files.length === 0) { alert("Please select an image."); return; }
+
+            // Clean Price
+            const priceNumber = parseFloat(rawPrice.replace(/[^0-9.]/g, ''));
+
+            btn.innerText = isEditing ? "Updating..." : "Uploading...";
+            btn.disabled = true;
+            btn.style.opacity = "0.7";
+
+            try {
+                let finalImageUrl = currentImageURL;
+
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const formData = new FormData();
+                    formData.append("image", file);
+                    const imgReq = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
+                    const imgData = await imgReq.json();
+                    if (!imgData.success) throw new Error("Image Upload Failed");
+                    finalImageUrl = imgData.data.url;
+                }
+
+                if (isEditing) {
+                    const { error } = await sbClient
+                        .from('products')
+                        .update({
+                            title: name,
+                            price: priceNumber,
+                            description: desc,
+                            category: cat,
+                            image_url: finalImageUrl
+                        })
+                        .eq('id', editDocID);
+                    
+                    if(error) throw error;
+                    alert("Item Updated!");
+
+                } else {
+                    const { error } = await sbClient
+                        .from('products')
+                        .insert({
+                            vendor_id: activeVendorUUID, // Link to this vendor
+                            title: name,
+                            price: priceNumber,
+                            description: desc,
+                            category: cat,
+                            image_url: finalImageUrl,
+                            is_flash_sale: false,
+                            is_sold: false
+                        });
+
+                    if(error) throw error;
+                    alert("Item Posted!");
+                }
+
+                closeUploadModal();
+                location.reload();
+
+            } catch (error) { 
+                alert("Error: " + error.message); 
+                btn.innerText = isEditing ? "Update Item" : "Post Item"; 
+                btn.disabled = false; 
+                btn.style.opacity = "1"; 
+            }
+        });
+
+        window.toggleSold = async function(docID, currentStatus) {
+            // currentStatus is boolean (true/false)
+            const newStatus = !currentStatus;
+            if(!confirm(`Mark as ${newStatus ? 'Sold' : 'Active'}?`)) return;
+            try {
+                await sbClient.from('products').update({ is_sold: newStatus }).eq('id', docID);
+                loadMyItems();
+            } catch(e) { alert("Error: " + e.message); }
+        };
+
+        window.deleteItem = async function(docID) {
+            if(!confirm("Delete this item?")) return;
+            try { 
+                await sbClient.from('products').delete().eq('id', docID); 
+                alert("Deleted!"); 
+                location.reload(); 
+            } 
+            catch(e) { alert("Error deleting: " + e.message); }
+        };
+
+        window.closeUploadModal = function() { document.getElementById('upload-modal').style.display = 'none'; };
+        window.closeLimitModal = function() { document.getElementById('limit-modal').style.display = 'none'; };
+    </script>
 </body>
 </html>

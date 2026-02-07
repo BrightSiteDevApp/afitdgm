@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | AFIT Market</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        :root {
+            --primary: #2d8eff; --primary-dark: #1a6ec0;
+            --bg-color: #f0f4f8; --text-dark: #333; --white: #ffffff;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
+        .container { background: var(--white); width: 100%; max-width: 480px; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(45, 142, 255, 0.15); margin-top: 20px; margin-bottom: 20px;}
+        h2 { text-align: center; color: var(--text-dark); margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #666; font-size: 0.9rem; margin-bottom: 30px; }
+        
+        /* Toggle Switch */
+        .toggle-container { display: flex; background: #eef2f7; padding: 5px; border-radius: 50px; margin-bottom: 30px; }
+        .toggle-btn { flex: 1; padding: 12px; border: none; background: transparent; cursor: pointer; border-radius: 50px; font-weight: 600; color: #666; transition: 0.3s; }
+        .toggle-btn.active { background: var(--primary); color: var(--white); box-shadow: 0 4px 15px rgba(45, 142, 255, 0.3); }
+
+        /* Forms */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-dark); margin-bottom: 8px; margin-left: 5px; }
+        .input-wrapper { position: relative; }
+        .input-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #aaa; }
+        input, textarea, select { width: 100%; padding: 14px 14px 14px 45px; border: 2px solid #eef2f7; border-radius: 12px; font-size: 0.95rem; background: #f9fbff; box-sizing: border-box; transition: 0.3s; }
+        textarea { padding: 14px; height: 100px; resize: none; }
+        input:focus, textarea:focus, select:focus { border-color: var(--primary); background: var(--white); outline: none; }
+        
+        /* Category Grid Styles */
+        .category-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
+        .cat-option { display: none; }
+        .cat-label {
+            padding: 8px 14px; background: #f0f2f5; border-radius: 25px;
+            font-size: 11px; font-weight: 600; color: #555; cursor: pointer;
+            transition: all 0.2s; border: 1px solid transparent; user-select: none;
+        }
+        .cat-option:checked + .cat-label { background: #e7f3ff; color: #2d8eff; border-color: #2d8eff; }
+
+        /* File Input */
+        input[type="file"] { padding: 10px; background: #fff; padding-left: 10px; }
+        ::file-selector-button { background: #eef2f7; border: none; padding: 5px 10px; border-radius: 6px; font-weight: 600; margin-right: 10px; cursor: pointer; }
+
+        /* Button */
+        .btn-submit { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: 0.3s; margin-top: 10px; box-shadow: 0 10px 20px rgba(45, 142, 255, 0.2); }
+        .btn-submit:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-submit:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+
+        .hidden { display: none; }
+        .login-link { text-align: center; margin-top: 20px; font-size: 0.9rem; }
+        .login-link a { color: var(--primary); text-decoration: none; font-weight: 600; }
+        
+        .message-box { padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 0.9rem; display: none; text-align: center; }
+        .error { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+        .success { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+
+        /* Row for Time */
+        .row { display: flex; gap: 15px; }
+        .col { flex: 1; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Create Account</h2>
+        <p class="subtitle">Join the AFIT Digital Market community</p>
+        
+        <div id="msg-box" class="message-box error"></div>
+        <div id="success-box" class="message-box success">✅ Account Created! Redirecting...</div>
+
+        <div class="toggle-container">
+            <button type="button" class="toggle-btn active" onclick="switchRole('student')">Student / Buyer</button>
+            <button type="button" class="toggle-btn" onclick="switchRole('vendor')">Vendor (Seller)</button>
+        </div>
+
+        <form id="authForm">
+            
+            <div class="form-group">
+                <label id="name-label">Full Name</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="shared_name" placeholder="Enter your full name" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" placeholder="student@afit.edu.ng" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="Create a strong password" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Phone Number <span id="phone-opt-text" style="color:#999; font-weight:normal;">(Optional)</span></label>
+                <div class="input-wrapper">
+                    <i class="fas fa-phone"></i>
+                    <input type="tel" id="phone_number" placeholder="08012345678">
+                </div>
+            </div>
+
+            <div id="student-fields">
+                <div class="form-group">
+                    <label>Profile Picture <span style="color:#999; font-weight:normal;">(Optional)</span></label>
+                    <input type="file" id="student_pic" accept="image/*">
+                </div>
+            </div>
+
+            <div id="vendor-fields" class="hidden">
+                <div style="border-top: 2px dashed #eef2f7; margin: 25px 0;"></div>
+                
+                <div class="form-group">
+                    <label>Vendor ID</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-id-badge"></i>
+                        <input type="text" id="vendor_id" placeholder="e.g. V001">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Invite Code</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-key"></i>
+                        <input type="text" id="invite_code" placeholder="Enter code from Admin">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Ambassador ID <span style="color:#999; font-weight:normal;">(Optional)</span></label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user-tag"></i>
+                        <input type="text" id="ambassador_id" placeholder="e.g. AMB01">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Shop Location</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <select id="v_location">
+                            <option value="AFIT Campus">AFIT Campus (Inside)</option>
+                            <option value="Mando">Mando</option>
+                            <option value="Barakallahu">Barakallahu</option>
+                            <option value="Kawo">Kawo</option>
+                            <option value="Kaduna">Kaduna</option>
+                            <option value="Online Only">Online Only</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Business Hours</label>
+                    <div class="row">
+                        <div class="col">
+                            <small>Open</small>
+                            <input type="time" id="open_time" value="09:00" style="padding-left:10px;">
+                        </div>
+                        <div class="col">
+                            <small>Close</small>
+                            <input type="time" id="close_time" value="21:00" style="padding-left:10px;">
+                        </div>
+                    </div>
+                    <div style="margin-top:10px;">
+                        <input type="checkbox" id="is_247" style="width:auto; transform: scale(1.2);"> 
+                        <label for="is_247" style="display:inline; margin-left:5px;">We operate 24/7</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Business Description</label>
+                    <textarea id="description" placeholder="Describe what you sell..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Categories</label>
+                    <div class="category-grid" id="cat-container"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Business Logo</label>
+                    <input type="file" id="logo_file" accept="image/*">
+                </div>
+
+                <div class="form-group">
+                    <label>ID Card (NIN / Student ID)</label>
+                    <input type="file" id="id_file" accept="image/*">
+                    <small style="color: #888; display: block; margin-top: 5px;">Securely stored for verification.</small>
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn-submit">Register as Student</button>
+
+            <div class="login-link">
+                Already have an account? <a href="login.html">Log In</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://mofdxngxakijeokaylwt.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vZmR4bmd4YWtpamVva2F5bHd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyNzYyMjAsImV4cCI6MjA4NDg1MjIyMH0.PqyNGp7Yp01ScCMDr4ta6GQPVqxa6A476Lz9cYKj3dE';
+        const IMGBB_API_KEY = '2181312d28a5fb2bc4e21e3880777523';
+
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let currentRole = 'student';
+
+        // --- GENERATE CATEGORIES ---
+        const categories = [
+            "Phone", "Laptops", "Gadgets", "Fashion", "Fashion Accessories", "Phone Accessories",
+            "Appliances", "Food & Snacks", "Fragrance", "Hair Services", "Graphic Design",
+            "Lifestyle", "Nail Care", "Services", "Sport Kits"
+        ];
+
+        const catContainer = document.getElementById('cat-container');
+        categories.forEach(cat => {
+            catContainer.innerHTML += `
+                <input type="checkbox" name="category" value="${cat}" id="cat-${cat.replace(/\s+/g, '')}" class="cat-option">
+                <label for="cat-${cat.replace(/\s+/g, '')}" class="cat-label">${cat}</label>
+            `;
+        });
+        // ---------------------------
+
+        function switchRole(role) {
+            currentRole = role;
+            const vendorFields = document.getElementById('vendor-fields');
+            const studentFields = document.getElementById('student-fields');
+            const submitBtn = document.getElementById('submitBtn');
+            const nameLabel = document.getElementById('name-label');
+            const nameInput = document.getElementById('shared_name');
+            const btns = document.querySelectorAll('.toggle-btn');
+            const phoneInput = document.getElementById('phone_number');
+            const phoneText = document.getElementById('phone-opt-text');
+
+            if (role === 'vendor') {
+                vendorFields.classList.remove('hidden');
+                studentFields.classList.add('hidden');
+                submitBtn.innerText = "Register Shop";
+                nameLabel.innerText = "Business Name";
+                nameInput.placeholder = "e.g. AFIT Spicy Kitchen";
+                phoneInput.required = true;
+                phoneText.innerText = "(Required)";
+                phoneText.style.color = "#dc2626";
+                btns[0].classList.remove('active'); btns[1].classList.add('active');
+                
+                // Set required
+                document.getElementById('vendor_id').required = true;
+                document.getElementById('invite_code').required = true;
+                document.getElementById('description').required = true;
+                document.getElementById('logo_file').required = true;
+                document.getElementById('id_file').required = true;
+            } else {
+                vendorFields.classList.add('hidden');
+                studentFields.classList.remove('hidden');
+                submitBtn.innerText = "Register as Student";
+                nameLabel.innerText = "Full Name";
+                nameInput.placeholder = "Enter your full name";
+                phoneInput.required = false;
+                phoneText.innerText = "(Optional)";
+                phoneText.style.color = "#999";
+                btns[0].classList.add('active'); btns[1].classList.remove('active');
+                
+                // Remove required
+                document.getElementById('vendor_id').required = false;
+                document.getElementById('invite_code').required = false;
+                document.getElementById('description').required = false;
+                document.getElementById('logo_file').required = false;
+                document.getElementById('id_file').required = false;
+            }
+        }
+
+        document.getElementById('authForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const msgBox = document.getElementById('msg-box');
+            
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+            msgBox.style.display = 'none';
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const sharedName = document.getElementById('shared_name').value.trim();
+            const phone = document.getElementById('phone_number').value.trim();
+
+            try {
+                if (currentRole === 'student') {
+                    // STUDENT REG
+                    let avatarUrl = null;
+                    const studentFile = document.getElementById('student_pic').files[0];
+                    if (studentFile) {
+                        btn.innerText = "Uploading Picture...";
+                        avatarUrl = await uploadToImgBB(studentFile);
+                    }
+                    btn.innerText = "Creating Account...";
+                    const { error } = await supabaseClient.from('students').insert([{ 
+                        full_name: sharedName, email: email, password: password,
+                        phone_number: phone, avatar_url: avatarUrl 
+                    }]);
+                    if (error) throw error;
+
+                } else {
+                    // VENDOR REG
+                    const code = document.getElementById('invite_code').value.trim();
+                    const vId = document.getElementById('vendor_id').value.trim().toUpperCase();
+                    const desc = document.getElementById('description').value.trim();
+                    const logoFile = document.getElementById('logo_file').files[0];
+                    const idFile = document.getElementById('id_file').files[0];
+                    
+                    // NEW FIELDS
+                    const location = document.getElementById('v_location').value;
+                    const openTime = document.getElementById('open_time').value;
+                    const closeTime = document.getElementById('close_time').value;
+                    const is247 = document.getElementById('is_247').checked;
+                    const ambId = document.getElementById('ambassador_id').value.trim(); // New Amb ID
+
+                    // COLLECT CATEGORIES
+                    const selectedCats = Array.from(document.querySelectorAll('input[name="category"]:checked'))
+                                              .map(cb => cb.value).join(", ");
+
+                    if (!logoFile || !idFile) throw new Error("Please upload both Logo and ID Card.");
+
+                    // Verify Code
+                    const { data: codeData, error: codeErr } = await supabaseClient.from('invite_codes')
+                        .select('*').eq('code', code).eq('is_used', false).single();
+                    if (codeErr || !codeData) throw new Error("Invalid or expired Invite Code.");
+
+                    // Upload
+                    btn.innerText = "Uploading Images...";
+                    const logoUrl = await uploadToImgBB(logoFile);
+                    const idUrl = await uploadToImgBB(idFile);
+
+                    // Insert
+                    btn.innerText = "Creating Account...";
+                    const { error: insertErr } = await supabaseClient.from('vendors').insert([{
+                        business_name: sharedName, email: email, password: password,
+                        phone_number: phone, description: desc, vendor_unique_id: vId,
+                        invite_code_used: code, logo_url: logoUrl, id_card_url: idUrl,
+                        slots_total: 15, is_approved: true,
+                        // Saving New Fields
+                        location: location, open_time: openTime, close_time: closeTime, online_247: is247,
+                        category: selectedCats, ambassador_id: ambId
+                    }]);
+
+                    if (insertErr) {
+                        if (insertErr.code === '23505') throw new Error("Vendor ID or Email already exists.");
+                        throw insertErr;
+                    }
+
+                    // Mark Code Used
+                    await supabaseClient.from('invite_codes').update({ is_used: true }).eq('id', codeData.id);
+                }
+
+                document.getElementById('success-box').style.display = 'block';
+                btn.innerText = "Success!";
+                setTimeout(() => window.location.href = 'login.html', 2000);
+
+            } catch (err) {
+                console.error(err);
+                msgBox.innerText = err.message || "Registration Failed";
+                msgBox.style.display = 'block';
+                btn.disabled = false;
+                btn.innerText = currentRole === 'student' ? "Register as Student" : "Register Shop";
+            }
+        });
+
+        async function uploadToImgBB(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
+            const data = await res.json();
+            if (!data.success) throw new Error("Image upload failed");
+            return data.data.url;
+        }
+    </script>
+</body>
+</html>

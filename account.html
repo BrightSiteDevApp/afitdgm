@@ -7,8 +7,9 @@
     <link rel="stylesheet" href="asset/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
-    <link rel="apple-touch-icon" href="img/app-logo.png">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         .profile-card {
             background: white;
@@ -61,10 +62,6 @@
 </head>
 <body data-page="account">
 
-    <script>
-        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
-    </script>
-
     <div class="app-container">
         <div class="header">
             <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
@@ -83,6 +80,9 @@
                 <img src="img/person.png" id="user-img" class="profile-img-large" onerror="this.src='img/person.png'">
                 <h3 id="user-name" style="margin:0; font-size:20px;">Student</h3>
                 <p id="user-email" style="margin:5px 0 0; color:#777; font-size:13px;">...</p>
+                <div id="vendor-badge" style="display:none; margin-top:10px;">
+                    <span style="background:#e3f2fd; color:#2d8eff; padding:4px 10px; border-radius:15px; font-size:11px; font-weight:bold;">Verified Vendor</span>
+                </div>
             </div>
 
             <div style="margin-top: 30px;">
@@ -127,75 +127,88 @@
 
     <script src="asset/script.js"></script>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
-            authDomain: "afit-market-auth.firebaseapp.com",
-            projectId: "afit-market-auth",
-            storageBucket: "afit-market-auth.firebasestorage.app",
-            messagingSenderId: "894920886640",
-            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
-        const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
+    <script>
+        // --- SUPABASE CONFIG ---
+        const supabaseUrl = "https://mofdxngxakijeokaylwt.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vZmR4bmd4YWtpamVva2F5bHd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyNzYyMjAsImV4cCI6MjA4NDg1MjIyMH0.PqyNGp7Yp01ScCMDr4ta6GQPVqxa6A476Lz9cYKj3dE";
         
-        // 🔒 ADMIN EMAIL
+        // 🟢 FIX: We use 'sbClient' instead of 'supabase' to prevent the crash
+        const sbClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
         const ADMIN_EMAIL = "afitdgm@gmail.com";
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // 1. Set Info
-                document.getElementById('user-name').innerText = user.displayName || "Student";
-                document.getElementById('user-email').innerText = user.email;
-                document.getElementById('user-img').src = user.photoURL || "img/person.png";
+        document.addEventListener("DOMContentLoaded", async () => {
+            if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
 
-                // 2. CHECK ROLE
-                const email = user.email.toLowerCase().trim();
+            // 1. Check CUSTOM AUTH (From localStorage)
+            const customData = localStorage.getItem('user_data');
+            const customRole = localStorage.getItem('user_role');
 
-                if (email === ADMIN_EMAIL) {
-                    // ✅ IS ADMIN -> Show Admin Button
-                    document.getElementById('btn-admin').style.display = "flex";
-                } 
-                
-                // 🏪 Check if Vendor (Admin can also be vendor)
-                await checkIfVendor(email);
-
-                // 3. Show Page
-                document.getElementById('account-loader').style.display = 'none';
-                document.getElementById('account-content').style.display = 'block';
+            if (customData) {
+                // User logged in via Email/Password
+                try {
+                    const user = JSON.parse(customData);
+                    renderProfile({
+                        name: user.full_name || user.business_name || "User",
+                        email: user.email,
+                        image: user.avatar_url || user.logo_url || "img/person.png",
+                        role: customRole
+                    });
+                } catch (e) {
+                    console.error("Auth Data Error:", e);
+                    localStorage.removeItem('user_data');
+                    window.location.href = "login.html";
+                }
             } else {
-                window.location.href = "login.html";
+                // 2. Check GOOGLE AUTH (Supabase Session)
+                const { data: { user } } = await sbClient.auth.getUser();
+                
+                if (user) {
+                    // Check if this Google user is a Vendor
+                    const { data: vendorData } = await sbClient
+                        .from('vendors')
+                        .select('*')
+                        .eq('email', user.email)
+                        .single();
+                    
+                    renderProfile({
+                        name: user.user_metadata.full_name || user.email.split('@')[0],
+                        email: user.email,
+                        image: user.user_metadata.avatar_url || "img/person.png",
+                        role: vendorData ? 'vendor' : 'student'
+                    });
+                } else {
+                    // No Login Found
+                    window.location.href = "login.html";
+                }
             }
         });
 
-        async function checkIfVendor(email) {
-            try {
-                // Fetch BOTH sheets
-                const [v1, v2] = await Promise.all([
-                    fetch(`${apiRoot}/Vendors`).then(res => res.json()),
-                    fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => []))
-                ]);
+        function renderProfile(user) {
+            document.getElementById('user-name').innerText = user.name;
+            document.getElementById('user-email').innerText = user.email;
+            document.getElementById('user-img').src = user.image;
 
-                // Merge lists
-                const allVendors = [...v1, ...v2];
+            if (user.email && user.email.toLowerCase() === ADMIN_EMAIL) {
+                document.getElementById('btn-admin').style.display = "flex";
+            }
 
-                // Check if email exists in either list
-                const isVendor = allVendors.some(v => v.Email && v.Email.toLowerCase().trim() === email);
+            if (user.role === 'vendor') {
+                document.getElementById('btn-dashboard').style.display = "flex";
+                document.getElementById('vendor-badge').style.display = "block";
+            }
 
-                if (isVendor) {
-                    document.getElementById('btn-dashboard').style.display = "flex";
-                }
-            } catch (err) { console.error(err); }
+            document.getElementById('account-loader').style.display = 'none';
+            document.getElementById('account-content').style.display = 'block';
         }
 
-        window.handleLogout = () => {
-            if(confirm("Log out now?")) signOut(auth).then(() => window.location.href = "index.html");
+        window.handleLogout = async () => {
+            if(confirm("Log out now?")) {
+                localStorage.removeItem('user_data');
+                localStorage.removeItem('user_role');
+                await sbClient.auth.signOut();
+                window.location.href = "index.html";
+            }
         };
     </script>
 </body>

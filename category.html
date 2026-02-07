@@ -16,8 +16,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="asset/style.css">
   <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
-    <link rel="apple-touch-icon" href="img/app-logo.png">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
       /* Hide content until loaded */
@@ -109,8 +109,7 @@
     </div>
 
     <div class="trending-grid" id="category-grid">
-        <p style="width:100%; text-align:center; padding:20px; color:#999;">Loading items...</p>
-    </div>
+        </div>
 
     <div id="load-more-container">
         <button id="load-more-btn">Load More</button>
@@ -149,215 +148,164 @@
 
   <script src="asset/script.js"></script>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, where } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  <script>
+    // --- SUPABASE CONFIG ---
+    const supabaseUrl = "https://mofdxngxakijeokaylwt.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vZmR4bmd4YWtpamVva2F5bHd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyNzYyMjAsImV4cCI6MjA4NDg1MjIyMH0.PqyNGp7Yp01ScCMDr4ta6GQPVqxa6A476Lz9cYKj3dE";
+    
+    // Use 'sbClient'
+    const sbClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
-        authDomain: "afit-market-auth.firebaseapp.com",
-        projectId: "afit-market-auth",
-        storageBucket: "afit-market-auth.firebasestorage.app",
-        messagingSenderId: "894920886640",
-        appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
+    // Global Vars
     let savedItemIds = new Set();
-    const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
-    const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
-    const ADMIN_PHONE = "2348144516127"; 
-
-    // --- PAGINATION VARS ---
-    let allCategoryItems = []; 
-    let filteredList = []; 
+    let activeUser = null;
+    let allCategoryItems = [];
+    let filteredList = [];
     let currentCount = 0;
     const INITIAL_LOAD = 30;
     const LOAD_STEP = 20;
+    const ADMIN_PHONE = "2348144516127";
 
-    // --- UTILS ---
-    function escapeHTML(str) {
-        if (!str) return "";
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-
-    // Fisher-Yates Shuffle Algorithm (True Randomness)
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-        return array;
-    }
-
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            try {
-                const querySnapshot = await getDocs(collection(db, "users", user.uid, "saved_items"));
-                savedItemIds.clear();
-                querySnapshot.forEach((doc) => { savedItemIds.add(doc.id); });
-                updateHeartIcons(); 
-            } catch (e) { console.error("Error loading wishlist:", e); }
-        }
-    });
-
-    async function loadFirestoreProducts() {
-        try {
-            const q = query(collection(db, "products")); 
-            const snapshot = await getDocs(q);
-            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        } catch(e) { return []; }
-    }
-
+    // --- AUTH & INIT ---
     document.addEventListener("DOMContentLoaded", async () => {
-        // Setup Load More
-        document.getElementById('load-more-btn').addEventListener('click', renderNextBatch);
-        
-        // Setup Search Listener
+        // 1. Check User
+        const localData = localStorage.getItem('user_data');
+        if(localData) {
+            activeUser = JSON.parse(localData);
+            loadSavedItems();
+        } else {
+            const { data: { user } } = await sbClient.auth.getUser();
+            if(user) {
+                activeUser = user;
+                loadSavedItems();
+            }
+        }
+
+        // 2. Get Category from URL
+        const params = new URLSearchParams(window.location.search);
+        let category = params.get('cat');
+
+        if(category) {
+            // Capitalize first letter for display
+            const displayTitle = category.charAt(0).toUpperCase() + category.slice(1);
+            document.title = `${displayTitle} | AFIT Market`;
+            document.getElementById('page-title').innerText = displayTitle;
+
+            loadCategoryItems(category);
+        } else {
+            document.getElementById('preloader').style.display = 'none';
+            document.getElementById('category-grid').innerHTML = "<p style='padding:20px;'>No category specified.</p>";
+        }
+
+        // 3. Search Listener
         document.getElementById('cat-search').addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
             if(!term) {
-                filteredList = allCategoryItems; // Reset to random list
+                filteredList = allCategoryItems;
             } else {
-                // If searching, we show matches (no random shuffle here needed)
-                filteredList = allCategoryItems.filter(p => (p.name || p.Name).toLowerCase().includes(term));
+                filteredList = allCategoryItems.filter(p => p.title.toLowerCase().includes(term));
             }
-            // Reset Rendering
+            // Reset & Render
             currentCount = 0;
             document.getElementById('category-grid').innerHTML = "";
             document.getElementById('result-count').innerText = `${filteredList.length} items found`;
             renderNextBatch();
         });
 
-        const params = new URLSearchParams(window.location.search);
-        let category = params.get('cat');
-
-        if(category) {
-            const displayTitle = category.charAt(0).toUpperCase() + category.slice(1);
-            document.title = `${displayTitle} | AFIT Market`;
-            document.getElementById('page-title').innerText = displayTitle;
-            
-            try {
-                const suspendedSnap = await getDocs(collection(db, "vendor_status"));
-                const suspendedVendors = new Set();
-                suspendedSnap.forEach(doc => { if(doc.data().status === "suspended") suspendedVendors.add(doc.id); });
-
-                const vendorRes = await fetch(`${apiRoot}/Vendors`);
-                const vendors = await vendorRes.json();
-                const phoneBook = {};
-                vendors.forEach(v => {
-                    const vID = v.vendor_id || v.Vendor_ID;
-                    const vPhone = v.whatsapp || v.Whatsapp;
-                    if(vID) phoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
-                });
-
-                const sheetProductsRes = await fetch(`${apiRoot}/Products`);
-                const sheetProducts = await sheetProductsRes.json();
-                const firestoreProducts = await loadFirestoreProducts();
-
-                let combined = [...sheetProducts, ...firestoreProducts];
-                
-                // Filter by Category
-                let categoryItems = combined.filter(p => 
-                    !suspendedVendors.has(p.vendor_id || p.Vendor_ID) &&
-                    String(p.category || p.Category).toLowerCase().trim() === category.toLowerCase().trim()
-                ).map(p => ({
-                    ...p,
-                    phone: phoneBook[p.vendor_id || p.Vendor_ID] || ADMIN_PHONE
-                }));
-
-                // 🎲 SHUFFLE ITEMS HERE (This makes it random every refresh)
-                allCategoryItems = shuffleArray(categoryItems);
-
-                // Initial State
-                filteredList = allCategoryItems;
-
-                const grid = document.getElementById('category-grid');
-                grid.innerHTML = ""; 
-                document.getElementById('result-count').innerText = `${filteredList.length} items found`;
-
-                if(filteredList.length === 0) {
-                    grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:#888;"><p>No ${category} available.</p></div>`;
-                    document.getElementById('preloader').style.display = 'none';
-                    document.getElementById('load-more-container').style.display = 'none';
-                    return;
-                }
-
-                // Render First Batch
-                renderNextBatch();
-
-                document.getElementById('preloader').style.display = 'none';
-            } catch (err) { console.error(err); }
-        }
+        // 4. Load More Button
+        document.getElementById('load-more-btn').addEventListener('click', renderNextBatch);
     });
+
+    // --- FETCH DATA ---
+    async function loadCategoryItems(category) {
+        try {
+            // Fetch Products + Join Vendors (Only Approved Vendors)
+            // Note: We use !inner to filter rows based on the joined table
+            const { data: products, error } = await sbClient
+                .from('products')
+                .select('*, vendors!inner(vendor_unique_id, phone_number, is_approved)')
+                .ilike('category', category) // Case-insensitive match
+                .eq('vendors.is_approved', true);
+
+            if(error) throw error;
+
+            // Map data to simpler structure
+            const mappedItems = products.map(p => ({
+                id: p.id,
+                title: p.title,
+                price: p.price,
+                description: p.description,
+                image: p.image_url,
+                condition: "Used", // Default
+                is_sold: p.is_sold,
+                vendor_id: p.vendors?.vendor_unique_id || "Unknown",
+                phone: p.vendors?.phone_number || ADMIN_PHONE
+            }));
+
+            // Shuffle for randomness
+            allCategoryItems = shuffleArray(mappedItems);
+            filteredList = allCategoryItems;
+
+            document.getElementById('result-count').innerText = `${filteredList.length} items found`;
+            document.getElementById('category-grid').innerHTML = "";
+
+            if(filteredList.length === 0) {
+                 document.getElementById('category-grid').innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:#888;"><p>No ${category} available right now.</p></div>`;
+                 document.getElementById('preloader').style.display = 'none';
+                 return;
+            }
+
+            renderNextBatch();
+            document.getElementById('preloader').style.display = 'none';
+
+        } catch (err) {
+            console.error("Error loading category:", err);
+            document.getElementById('category-grid').innerHTML = "<p style='padding:20px;'>Error loading items.</p>";
+            document.getElementById('preloader').style.display = 'none';
+        }
+    }
 
     function renderNextBatch() {
         const grid = document.getElementById('category-grid');
         const loadMoreContainer = document.getElementById('load-more-container');
         const loadMoreBtn = document.getElementById('load-more-btn');
 
-        // Determine batch size (30 for first, 20 for rest)
         const batchSize = (currentCount === 0) ? INITIAL_LOAD : LOAD_STEP;
         const nextItems = filteredList.slice(currentCount, currentCount + batchSize);
 
         nextItems.forEach(p => {
-            const pName = p.name || p.Name;
-            const pPrice = p.price || p.Price;
-            // 🆕 GET DESCRIPTION
-            const pDesc = p.description || p.Description || "No additional details."; 
-            const pVendor = p.vendor_id || p.Vendor_ID;
-            const pImage = p.image || p.Image;
-            const pStatus = p.status || p.Status || "Active";
-            const pCond = p.condition || "Used";
+            const priceFormatted = "₦" + Number(p.price).toLocaleString();
             
-            const pID = p.id || (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
-
-            const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
-            const isSaved = savedItemIds.has(pID);
+            // Safe Strings for HTML
+            const safeNameJS = p.title.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            const safeDescJS = (p.description || "").replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+            
+            // Save Status
+            const isSaved = savedItemIds.has(p.id);
             const heartClass = isSaved ? 'fas' : 'far';
             const heartColor = isSaved ? '#ff4757' : '#777';
 
-            // Safe Strings
-            const safeNameJS = pName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-            const safeDescJS = pDesc.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
-            const safeNameHTML = escapeHTML(pName);
-            const safePrice = escapeHTML(pPrice);
-
-            const isSold = pStatus === "Sold";
-            const opacity = isSold ? 'opacity:0.6;' : '';
-            const badge = isSold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : '';
+            // Sold Status
+            const opacity = p.is_sold ? 'opacity:0.6;' : '';
+            const badge = p.is_sold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : '';
             
-            const btnText = isSold ? "Sold" : "Get Item";
-            const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
-            // 🆕 BUTTON now opens Modal
-            const btnAction = isSold ? "" : `openDetailModal('${safeNameJS}', '${safePrice}', '${safeDescJS}', '${pVendor}', '${pCond}', '${p.phone}')`;
-
-            const condBadge = (!isSold && pCond === "New") ? `<span style="background:#00b894; color:white; font-size:9px; padding:2px 5px; border-radius:4px; position:absolute; top:10px; left:10px; z-index:10;">NEW</span>` : '';
+            const btnText = p.is_sold ? "Sold" : "Get Item";
+            const btnStyle = p.is_sold ? "background:#777; pointer-events:none;" : "";
+            const btnAction = p.is_sold ? "" : `openDetailModal('${safeNameJS}', '${priceFormatted}', '${safeDescJS}', '${p.vendor_id}', '${p.condition}', '${p.phone}')`;
 
             grid.innerHTML += `
             <div class="ad-card" style="position:relative; ${opacity}">
-                ${badge} ${condBadge}
-                <button onclick="toggleSave('${pID}', '${safeNameJS}', '${safePrice}', '${pImage}', '${pVendor}')" 
-                        class="save-btn" id="save-${pID}"
-                        style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
+                ${badge}
+                <button onclick="toggleSave('${p.id}')" class="save-btn" id="save-${p.id}"
+                    style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
                     <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
                 </button>
-                <img class="ad-img" src="${img}" alt="${safeNameHTML}" onerror="this.src='img/logo-blue.png'">
+                <img class="ad-img" src="${p.image}" alt="${p.title}" onerror="this.src='img/logo-blue.png'">
                 <div class="ad-info">
-                    <div class="ad-price">${safePrice}</div>
-                    <div class="ad-title">${safeNameHTML}</div>
-                    <div class="ad-desc-preview">${escapeHTML(pDesc)}</div>
-                    <div class="ad-location">Vendor: ${pVendor}</div>
+                    <div class="ad-price">${priceFormatted}</div>
+                    <div class="ad-title">${p.title}</div>
+                    <div class="ad-desc-preview">${(p.description || "").substring(0, 40)}...</div>
+                    <div class="ad-location">Vendor: ${p.vendor_id}</div>
                     <button onclick="${btnAction}" class="chat-btn" style="width:100%; margin-top:5px; border:none; cursor:pointer; ${btnStyle}">${btnText}</button>
                 </div>
             </div>`;
@@ -373,7 +321,7 @@
         }
     }
 
-    // 🆕 FUNCTION TO OPEN MODAL
+    // --- UTILS ---
     window.openDetailModal = function(title, price, desc, vendor, cond, phone) {
         document.getElementById('m-title').innerText = title;
         document.getElementById('m-price').innerText = price;
@@ -387,17 +335,39 @@
         document.getElementById('detail-modal').style.display = 'flex';
     };
 
-    window.toggleSave = async function(id, name, price, image, vendor) {
-        const user = auth.currentUser;
-        if (!user) { if(confirm("Sign in to save items?")) window.location.href = "login.html"; return; }
-        const userRef = doc(db, "users", user.uid, "saved_items", id);
-        if (savedItemIds.has(id)) {
-            savedItemIds.delete(id); await deleteDoc(userRef);
-        } else {
-            savedItemIds.add(id);
-            await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() });
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
         }
+        return array;
+    }
+
+    // --- SAVE FEATURE ---
+    async function loadSavedItems() {
+        if(!activeUser) return;
+        const { data } = await sbClient.from('saved_items').select('product_id').eq('user_id', activeUser.id);
+        if(data) data.forEach(item => savedItemIds.add(item.product_id));
         updateHeartIcons();
+    }
+
+    window.toggleSave = async function(pid) {
+        if (!activeUser) { 
+            if(confirm("Sign in to save items?")) window.location.href = "login.html"; 
+            return; 
+        }
+        
+        const btnIcon = document.querySelector(`#save-${pid} i`);
+        
+        if (savedItemIds.has(pid)) {
+            savedItemIds.delete(pid);
+            btnIcon.classList.replace('fas', 'far'); btnIcon.style.color = '#777';
+            await sbClient.from('saved_items').delete().eq('user_id', activeUser.id).eq('product_id', pid);
+        } else {
+            savedItemIds.add(pid);
+            btnIcon.classList.replace('far', 'fas'); btnIcon.style.color = '#ff4757';
+            await sbClient.from('saved_items').insert({ user_id: activeUser.id, product_id: pid });
+        }
     };
 
     function updateHeartIcons() {
@@ -406,11 +376,9 @@
             const icon = btn.querySelector('i');
             if (savedItemIds.has(id)) {
                 icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
-            } else {
-                icon.classList.replace('fas', 'far'); icon.style.color = '#777';
             }
         });
     }
-</script>
+  </script>
 </body>
 </html>
